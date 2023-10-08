@@ -1,0 +1,12 @@
+- stage: build
+  displayName: Build
+  dependsOn: [ quality_gate ]
+  condition: succeeded('quality_gate')
+  jobs:
+    - job: build
+      displayName: Build
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo build
+          displayName: 'Run a one-line script'

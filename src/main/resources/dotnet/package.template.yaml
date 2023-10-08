@@ -1,0 +1,12 @@
+- stage: package
+  displayName: Package
+  dependsOn: [ build ]
+  condition: and(succeeded('build'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: package
+      displayName: package
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo package
+          displayName: 'Run a one-line script'

@@ -1,0 +1,12 @@
+- stage: it_test
+  displayName: Integration Test
+  dependsOn: [ security_check ]
+  condition: succeeded('security_check')
+  jobs:
+    - job: it_test
+      displayName: Integration Test
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo it_test
+          displayName: 'Run a one-line script'

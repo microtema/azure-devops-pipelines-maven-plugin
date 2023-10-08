@@ -1,0 +1,12 @@
+- stage: readiness
+  displayName: Readiness
+  dependsOn: [ deployment ]
+  condition: and(succeeded('deployment'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: Readiness
+      displayName: Readiness
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo Readiness
+          displayName: 'Run a one-line script'

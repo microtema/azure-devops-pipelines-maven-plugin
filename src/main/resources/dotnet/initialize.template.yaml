@@ -1,0 +1,10 @@
+- stage: initialize
+  displayName: Initialize
+  jobs:
+    - job: initialize
+      displayName: Initialize
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo dotnet --version
+          displayName: 'Run a one-line script'

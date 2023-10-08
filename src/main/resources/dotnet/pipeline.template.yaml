@@ -3,9 +3,9 @@
 # azure-pipelines.yml is generated and should not be edited. #
 ################################################################################
 
-trigger: [%TRIGGER]
+trigger: [%TRIGGER%]
 
-%ENV%
+%VARIABLES%
 
 stages:
-  %STAGES%
+%STAGES%

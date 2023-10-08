@@ -585,7 +585,7 @@ public class PipelineGeneratorUtil {
 
         String template = null;
         try {
-            template = objectMapper.writeValueAsString(Collections.singletonMap("env", branchVariables));
+            template = objectMapper.writeValueAsString(Collections.singletonMap("variables", branchVariables));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

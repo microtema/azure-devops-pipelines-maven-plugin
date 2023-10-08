@@ -1,0 +1,12 @@
+- stage: versioning
+  displayName: Versioning
+  dependsOn: [ initialize ]
+  condition: succeeded('initialize')
+  jobs:
+    - job: versioning
+      displayName: Versioning
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo handle semver 2.0
+          displayName: 'Run a one-line script'

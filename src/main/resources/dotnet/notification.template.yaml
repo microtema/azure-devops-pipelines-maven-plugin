@@ -1,0 +1,12 @@
+- stage: notification
+  displayName: Notification
+  dependsOn: [ documentation ]
+  condition: and(succeeded('readiness'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: notification
+      displayName: Notification
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo Notification
+          displayName: 'Run a one-line script'

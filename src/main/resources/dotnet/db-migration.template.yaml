@@ -1,0 +1,12 @@
+- stage: db_migration
+  displayName: DB Migration
+  dependsOn: [ tag ]
+  condition: and(succeeded('package'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: db_migration
+      displayName: DB Migration
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo db_migration
+          displayName: 'Run a one-line script'

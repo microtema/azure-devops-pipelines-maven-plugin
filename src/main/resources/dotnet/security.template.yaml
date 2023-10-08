@@ -1,0 +1,12 @@
+- stage: security_check
+  displayName: Security Check
+  dependsOn: [ compile ]
+  condition: succeeded('compile')
+  jobs:
+    - job: security_check
+      displayName: Security Check
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo security_check
+          displayName: 'Run a one-line script'

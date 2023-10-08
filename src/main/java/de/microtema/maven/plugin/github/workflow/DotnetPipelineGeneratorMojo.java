@@ -1,7 +1,7 @@
 package de.microtema.maven.plugin.github.workflow;
 
 import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
-import de.microtema.maven.plugin.github.workflow.job.npm.*;
+import de.microtema.maven.plugin.github.workflow.job.dotnet.*;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import de.microtema.model.converter.util.ClassUtil;
 
@@ -28,10 +28,6 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
 
         injectTemplateStageServices();
 
-        File rootDir = getOrCreateWorkflowsDir();
-
-        cleanupWorkflows(rootDir);
-
         applyDefaultVariables();
 
         List<MetaData> workflows = getWorkflowFiles(project, stages, downStreams);
@@ -42,19 +38,24 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
     }
 
     void injectTemplateStageServices() {
-        /*
+        templateStageServices.add(ClassUtil.createInstance(InitializeTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(VersioningTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(CompileTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(SecurityTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(UnitTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(IntegrationTestTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(QualityGateTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(BuildTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(PackageTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(DbMigrationTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(ReadinessTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(SystemTestTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(PerformanceTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DownstreamTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(DocuTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(NotificationTemplateStageService.class));
-
-         */
     }
 
     void applyDefaultVariables() {
@@ -62,10 +63,7 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("APP_NAME", project.getArtifactId());
         defaultVariables.put("APP_DISPLAY_NAME", appName);
 
-       // defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
-
-
-        defaultVariables.put("NODE_VERSION", PipelineGeneratorUtil.getProperty(project, "node.version", "16"));
+        // defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
 
         if (!downStreams.isEmpty()) {
 
@@ -81,45 +79,35 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
 
     void executeImpl(MetaData metaData, List<MetaData> workflows) {
 
-        String rootPath = PipelineGeneratorUtil.getRootPath(project);
-
-        File dir = new File(rootPath, pipelineFileName);
-
-        String version = project.getVersion();
-
-        switch (metaData.getBranchName()) {
-            case "feature":
-            case "develop":
-                break;
-            case "release":
-                version = version.replace("-SNAPSHOT", "-RC");
-                break;
-            case "hotfix":
-                version = version.replace("-SNAPSHOT", "");
-                break;
-            case "master":
-                version = version.replace("-SNAPSHOT", "");
-                version = version.replace("-RC", "");
-                version = version.replace("-FIX", "");
-                break;
-        }
-
-        defaultVariables.put("VERSION", version);
+        defaultVariables.put("VERSION", project.getVersion());
         defaultVariables.put("GIT_COMMIT", "$(Build.SourceVersion)");
         defaultVariables.put("REPO_NAME", "$(Build.Repository.Name)");
         defaultVariables.put("BRANCH_NAME", "$[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]");
 
-        String pipeline = PipelineGeneratorUtil.getTemplate("pipeline");
+        defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");
+        defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
+        defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
+        defaultVariables.put("REPO_ORGANISATION", "mariotema");
+        defaultVariables.put("REPO_PROJECT", "microtema");
+
+        String pipeline = PipelineGeneratorUtil.getTemplate("dotnet/pipeline");
+
+        List<MetaData> workflowFiles = getWorkflowFiles(project, stages, downStreams);
+
+        List<String> branches = workflowFiles.stream()
+                .map(MetaData::getBranchPattern)
+                .collect(Collectors.toList()).stream()
+                .sorted().collect(Collectors
+                        .toList());
 
         pipeline = pipeline
-                .replace("%variables%", getVariablesTemplate(defaultVariables))
+                .replace("%TRIGGER%", String.join(", ", branches))
+                .replace("%VARIABLES%", getVariablesTemplate(defaultVariables))
                 .replace("%STAGES%", getStagesTemplate(metaData, templateStageServices));
 
-        String workflowFileName = getWorkflowFileName(metaData, workflows);
+        File githubWorkflow = new File(pipelineFileName);
 
-        File githubWorkflow = new File(dir, workflowFileName);
-
-        logMessage("Generate Azure DevOps pipelines for " + appName + " -> " + workflowFileName);
+        logMessage("Generate Azure DevOps pipelines for " + appName + " -> " + pipelineFileName);
 
         pipeline = PipelineGeneratorUtil.removeEmptyLines(pipeline);
 
