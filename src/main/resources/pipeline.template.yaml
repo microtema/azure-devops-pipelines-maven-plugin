@@ -1,0 +1,16 @@
+############## Created by de.microtema:github-workflow-maven-plugin ############
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+# Files under .github/workflows folder are generated and should not be edited. #
+################################################################################
+
+name: '%PIPELINE_NAME%'
+
+on:
+  push:
+    branches:
+      - %BRANCH_NAME%
+
+  %ENV%
+
+jobs:
+  %JOBS%

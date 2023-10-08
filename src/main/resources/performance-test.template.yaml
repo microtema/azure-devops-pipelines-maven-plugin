@@ -1,0 +1,33 @@
+performance-test:
+  name: '%JOB_NAME%'
+  runs-on: [ %RUNS_ON% ]
+  needs: [ %NEEDS% ]
+  env:
+    API_KEY: %API_KEY%
+    STAGE_NAME: %STAGE_NAME%
+    SERVICE_URL: %SERVICE_URL%
+    AKS_NAMESPACE: %AKS_NAMESPACE%
+  steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v3
+    - name: 'Java: Setup'
+      uses: actions/setup-java@v2
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'adopt'
+    - name: Set up Maven
+      uses: stCarolas/setup-maven@v4
+      with:
+        maven-version: 3.8.2
+    - name: 'AKS: Set context'
+      if: ${{ '%PRIVATE_NETWORK%' }}
+      uses: azure/aks-set-context@v1
+      with:
+        creds: %AKS_CREDENTIALS%
+        cluster-name: %AKS_CLUSTER_NAME%
+        resource-group: %AKS_RESOURCE_GROUP%
+    - name: 'Shell: port-forward'
+      if: ${{ '%PRIVATE_NETWORK%' }}
+      run: kubectl -n $AKS_NAMESPACE port-forward service/$APP_NAME 8080:80 &
+    - name: 'Maven: jmeter'
+      run: mvn compile jmeter:jmeter -P performance-$STAGE_NAME -DstageName=$STAGE_NAME -DapiKey=$API_KEY $MAVEN_CLI_OPTS

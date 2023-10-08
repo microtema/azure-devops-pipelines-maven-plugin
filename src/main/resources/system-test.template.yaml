@@ -1,0 +1,43 @@
+system-test:
+  name: '%JOB_NAME%'
+  runs-on: [ %RUNS_ON% ]
+  needs: [ %NEEDS% ]
+  env:
+    API_KEY: %API_KEY%
+    STAGE_NAME: %STAGE_NAME%
+    SERVICE_URL: %SERVICE_URL%
+    AKS_NAMESPACE: %AKS_NAMESPACE%
+  steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v3
+    - name: 'AKS: Set context'
+      if: ${{ '%PRIVATE_NETWORK%' }}
+      uses: azure/aks-set-context@v1
+      with:
+        creds: %AKS_CREDENTIALS%
+        cluster-name: %AKS_CLUSTER_NAME%
+        resource-group: %AKS_RESOURCE_GROUP%
+    - name: 'Shell: port-forward'
+      if: ${{ '%PRIVATE_NETWORK%' }}
+      run: kubectl -n $AKS_NAMESPACE port-forward service/$APP_NAME 8080:80 &
+    - name: 'Java: Setup'
+      uses: actions/setup-java@v2
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'adopt'
+    - name: Set up Maven
+      uses: stCarolas/setup-maven@v4
+      with:
+        maven-version: 3.8.2
+    - name: 'Maven: system test'
+      run: mvn integration-test -P it -DtestType=%TEST_TYPE% -DsourceType=%SOURCE_TYPE% -DstageName=$STAGE_NAME -DapiKey=$API_KEY $MAVEN_CLI_OPTS
+    - name: 'Artifact: prepare'
+      run: |
+        mkdir -p artifact/target/surefire-reports/st
+        cp -r target/surefire-reports/* artifact/target/surefire-reports/st/
+        cp -r target/jacoco.exec artifact/target/surefire-reports/st/
+    - name: 'Test result'
+      uses: actions/upload-artifact@v2
+      with:
+        name: target-artifact
+        path: artifact
