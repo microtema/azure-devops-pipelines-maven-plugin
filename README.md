@@ -1,5 +1,5 @@
-# github workflows generator
-Reducing Boilerplate Code with github workflows maven plugin
+# Azure DevOps pipelines generator
+Reducing Boilerplate Code with DevOps pipelines maven plugin
 > More Time for Feature and functionality
   Through a simple set of github workflows templates and saving 60% of development time 
 
