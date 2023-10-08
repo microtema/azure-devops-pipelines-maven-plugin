@@ -1,12 +1,12 @@
-- stage: build
-  displayName: Build
-  dependsOn: [ quality_gate ]
-  condition: succeeded('quality_gate')
+- stage: deployment
+  displayName: Deployment
+  dependsOn: [ db_migration ]
+  condition: succeeded('db_migration')
   jobs:
-    - job: build
-      displayName: Build
+    - job: deployment
+      displayName: Deployment
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo build
+        - script: echo deployment
           displayName: 'Run a one-line script'
