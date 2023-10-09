@@ -4,10 +4,12 @@ import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
 import de.microtema.maven.plugin.github.workflow.job.dotnet.*;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import de.microtema.model.converter.util.ClassUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -87,8 +89,11 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");
         defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
         defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
-        defaultVariables.put("REPO_ORGANISATION", "mariotema");
-        defaultVariables.put("REPO_PROJECT", "microtema");
+
+       // defaultVariables.put("REPO_ORGANISATION", "mariotema");
+       // defaultVariables.put("REPO_PROJECT", "microtema");
+
+        defaultVariables.putAll(variables);
 
         String pipeline = PipelineGeneratorUtil.getTemplate("dotnet/pipeline");
 

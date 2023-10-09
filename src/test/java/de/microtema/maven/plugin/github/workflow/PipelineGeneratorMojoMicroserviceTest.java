@@ -72,8 +72,6 @@ class PipelineGeneratorMojoMicroserviceTest {
         sut.variables.put("DOCKER_REGISTRY_PASSWORD", "docker.password");
 
         sut.variables.put("SERVICE_URL", "http://localhost:8080");
-        sut.variables.put("ENV_STAGE_NAME", "ENV_$STAGE_NAME");
-        sut.variables.put("REPO_ACCESS_TOKEN", "${{ secrets.REPO_ACCESS_TOKEN }}");
 
         properties.put("sonar.host.url", "http://localhost:9000");
 
