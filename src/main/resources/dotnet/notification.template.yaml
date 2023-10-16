@@ -1,7 +1,7 @@
 - stage: notification
   displayName: Notification
   dependsOn: [ documentation ]
-  condition: and(succeeded('readiness'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  condition: and(succeeded('documentation'), or(eq(variables.isRelease, true), eq(variables.isMaster, true)))
   jobs:
     - job: notification
       displayName: Notification
