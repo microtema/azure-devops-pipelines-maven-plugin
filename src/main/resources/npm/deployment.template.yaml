@@ -1,0 +1,12 @@
+- stage: deployment
+  displayName: Deployment
+  dependsOn: [ tag ]
+  condition: and(succeeded('package'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: deployment
+      displayName: Deployment
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo deployment
+          displayName: 'Run a one-line script'

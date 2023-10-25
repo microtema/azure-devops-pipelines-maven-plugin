@@ -1,0 +1,12 @@
+- stage: tag
+  displayName: Tag Release
+  dependsOn: [ package ]
+  condition: and(succeeded('build'), eq(variables.isMaster, true))
+  jobs:
+    - job: tag
+      displayName: package
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo tag release
+          displayName: 'Run a one-line script'

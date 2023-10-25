@@ -4,11 +4,11 @@ import de.microtema.maven.plugin.github.workflow.PipelineGeneratorMojo;
 import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
-public class DownstreamTemplateStageService implements TemplateStageService {
+public class TagTemplateStageService implements TemplateStageService {
 
     @Override
     public String getTemplateName() {
-        return "npm/downstream";
+        return "npm/tag";
     }
 
     @Override

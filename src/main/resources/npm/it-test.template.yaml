@@ -1,12 +1,12 @@
-- stage: unit_test
-  displayName: Unit Test
+- stage: it_test
+  displayName: Integration Test
   dependsOn: [ security_check ]
   condition: succeeded('security_check')
   jobs:
-    - job: unit_test
-      displayName: unit test
+    - job: it_test
+      displayName: Integration Test
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: npm test
+        - script: echo it_test
           displayName: 'Run a one-line script'

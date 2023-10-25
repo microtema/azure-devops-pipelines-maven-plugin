@@ -1,0 +1,12 @@
+- stage: notification
+  displayName: Notification
+  dependsOn: [ documentation ]
+  condition: and(succeeded('documentation'), or(eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: notification
+      displayName: Notification
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo Notification
+          displayName: 'Run a one-line script'

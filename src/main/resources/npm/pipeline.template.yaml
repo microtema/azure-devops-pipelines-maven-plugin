@@ -1,0 +1,11 @@
+############## Created by de.microtema:azure-devops-pipelines-maven-plugin ############
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
+# azure-pipelines.yml is generated and should not be edited. #
+################################################################################
+
+trigger: [%TRIGGER%]
+
+%VARIABLES%
+
+stages:
+%STAGES%

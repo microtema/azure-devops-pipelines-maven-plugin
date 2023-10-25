@@ -1,0 +1,12 @@
+- stage: downstream
+  displayName: E2E Test
+  dependsOn: [ system_test ]
+  condition: and(succeeded('system_test'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true)))
+  jobs:
+    - job: downstream
+      displayName: downstream
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: echo downstream
+          displayName: 'Run a one-line script'

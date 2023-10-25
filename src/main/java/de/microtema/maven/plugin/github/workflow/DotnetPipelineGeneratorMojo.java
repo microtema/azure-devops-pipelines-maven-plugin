@@ -90,9 +90,6 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
         defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
 
-       // defaultVariables.put("REPO_ORGANISATION", "mariotema");
-       // defaultVariables.put("REPO_PROJECT", "microtema");
-
         defaultVariables.putAll(variables);
 
         String pipeline = PipelineGeneratorUtil.getTemplate("dotnet/pipeline");
