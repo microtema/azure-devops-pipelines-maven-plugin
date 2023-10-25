@@ -8,5 +8,7 @@
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: npm test
+        - script: npm install
+          displayName: 'Run a one-line script'
+        - script: CI=true npm test
           displayName: 'Run a one-line script'
