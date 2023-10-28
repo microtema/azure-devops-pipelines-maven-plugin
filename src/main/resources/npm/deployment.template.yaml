@@ -2,11 +2,56 @@
   displayName: Deployment
   dependsOn: [ tag ]
   condition: and(succeeded('package'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: ${{ upper(variables['STAGE_NAME']) }}
   jobs:
-    - job: deployment
-      displayName: Deployment
+    - job: upload
+      displayName: Static Web Page Deployment
+      variables:
+        AZURE_RESOURCE_GROUP: $(APP_NAME)-$(STAGE_NAME)-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo deployment
-          displayName: 'Run a one-line script'
+        - task: NodeTool@0
+          displayName: Install Node.js
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm install
+          displayName: Setup NPM
+        - script: cp env/.env.${{ lower(variables['STAGE_NAME']) }} .env
+          displayName: Promote Env
+        - script: npm run build
+          displayName: Build Static Web Page
+        - task: AzureCLI@2
+          displayName: 'Upload Static Web Page'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              az storage blob upload-batch \
+              --account-name ${AZURE_RESOURCE_GROUP//[^[:alnum:]]/""} \
+              --source ./build/${{ lower(variables['STAGE_NAME']) }} \
+              --destination "\$web" \
+              --overwrite true
+    - job: update
+      displayName: Static Web Page Setup
+      dependsOn: [ upload ]
+      condition: succeeded('upload')
+      variables:
+        AZURE_RESOURCE_GROUP: $(APP_NAME)-$(STAGE_NAME)-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: AzureCLI@2
+          displayName: 'Update Static Web Page Properties'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              az storage blob service-properties update \
+              --account-name ${AZURE_RESOURCE_GROUP//[^[:alnum:]]/""} \
+              --static-website true \
+              --404-document index.html \
+              --index-document index.html

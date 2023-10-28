@@ -2,11 +2,84 @@
   displayName: Package
   dependsOn: [ build ]
   condition: and(succeeded('build'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: ${{ upper(variables['STAGE_NAME']) }}
   jobs:
-    - job: package
-      displayName: package
+    - job: check
+      displayName: Check Resource Group
+      variables:
+        AZURE_RESOURCE_GROUP: $(APP_NAME)-$(STAGE_NAME)-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo npm package
-          displayName: 'Run a one-line script'
+        - task: AzureCLI@2
+          name: rg
+          displayName: 'Task: Azure CLI'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: echo "##vso[task.setvariable variable=exists;isoutput=true]$(az group exists -n $AZURE_RESOURCE_GROUP)"
+    - job: create_resource_group
+      displayName: Create Resource Group
+      dependsOn: [ check ]
+      condition: and(succeeded('check'), eq(dependencies.check.outputs['rg.exists'], 'false'))
+      variables:
+        AZURE_RESOURCE_GROUP: $(APP_NAME)-$(STAGE_NAME)-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: AzureCLI@2
+          displayName: 'Create Resource-Group'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              az group create \
+              --location $(AZURE_LOCATION) \
+              --name $(AZURE_RESOURCE_GROUP)
+              
+              az group wait --created \
+              --resource-group $(AZURE_RESOURCE_GROUP)
+    - job: create_storage_account
+      displayName: Create Storage Account
+      dependsOn: create_resource_group
+      condition: and(succeeded('create_resource_group'), eq(dependencies.check.outputs['rg.exists'], 'false'))
+      variables:
+        AZURE_RESOURCE_GROUP: $(APP_NAME)-$(STAGE_NAME)-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: AzureCLI@2
+          displayName: 'Create Storage Account'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              az storage account create \
+              --name ${AZURE_RESOURCE_GROUP//[^[:alnum:]]/""} \
+              --resource-group $(AZURE_RESOURCE_GROUP) \
+              --allow-blob-public-access true
+    - job: create_storage_container
+      displayName: Create Storage Container
+      dependsOn: create_storage_account
+      condition: and(succeeded('create_storage_account'), eq(dependencies.check.outputs['rg.exists'], 'false'))
+      variables:
+        AZURE_RESOURCE_GROUP: $(APP_NAME)-$(STAGE_NAME)-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: AzureCLI@2
+          displayName: 'Create Storage Container'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              az storage container create \
+              --name "\$web" \
+              --resource-group $(AZURE_RESOURCE_GROUP) \
+              --account-name ${AZURE_RESOURCE_GROUP//[^[:alnum:]]/""} \
+              --public-access blob

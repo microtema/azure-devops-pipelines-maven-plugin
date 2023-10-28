@@ -85,6 +85,7 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("GIT_COMMIT", "$(Build.SourceVersion)");
         defaultVariables.put("REPO_NAME", "$(Build.Repository.Name)");
         defaultVariables.put("BRANCH_NAME", "$[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]");
+        defaultVariables.put("STAGE_NAME","${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:dev${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/release/') }}:int${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:prod");
 
         defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");
         defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
