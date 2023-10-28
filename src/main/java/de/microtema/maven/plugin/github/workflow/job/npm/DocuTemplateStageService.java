@@ -8,7 +8,7 @@ public class DocuTemplateStageService implements TemplateStageService {
 
     @Override
     public String getTemplateName() {
-        return "npm/docu";
+        return "docu";
     }
 
     @Override

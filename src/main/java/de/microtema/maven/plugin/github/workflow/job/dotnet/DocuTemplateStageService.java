@@ -8,7 +8,7 @@ public class DocuTemplateStageService implements TemplateStageService {
 
     @Override
     public String getTemplateName() {
-        return "dotnet/docu";
+        return "docu";
     }
 
     @Override

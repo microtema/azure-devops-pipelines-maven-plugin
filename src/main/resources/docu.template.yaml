@@ -17,6 +17,8 @@
             mkdir -p doc-as-code/.docs/$(APP_DISPLAY_NAME)/deleteme
             rm -r doc-as-code/.docs/$(APP_DISPLAY_NAME)/*
             cp -R docs/. doc-as-code/.docs/$(APP_DISPLAY_NAME)
+            mkdir -p doc-as-code/docs/$(APP_DISPLAY_NAME)/deleteme
+            rm -r doc-as-code/docs/$(APP_DISPLAY_NAME)/*
             cp README.md doc-as-code/docs/$(APP_DISPLAY_NAME)/$(APP_DISPLAY_NAME).md
           displayName: 'Copy Docu'
         - script: |
