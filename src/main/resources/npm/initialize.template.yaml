@@ -1,5 +1,5 @@
 - stage: initialize
-  displayName: Initialize
+  displayName: 'Initialize'
   jobs:
     - job: initialize
       displayName: Initialize

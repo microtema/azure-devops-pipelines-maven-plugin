@@ -4,9 +4,9 @@
   condition: and(succeeded('readiness'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true)))
   jobs:
     - job: system_test
-      displayName: System Test
+      displayName: System Tests
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo system_test
-          displayName: 'Run a one-line script'
+        - script: dotnet test SystemTest
+          displayName: 'Run System Tests'

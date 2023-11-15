@@ -1,27 +1,32 @@
 - stage: deployment
-  displayName: Deployment
+  displayName: 'Deployment'
   dependsOn: [ tag ]
   condition: and(succeeded('package'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   variables:
-    - group: ${{ upper(variables['STAGE_NAME']) }}
+    - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
+        - group: DEV
+    - ${{ if startsWith(variables['Build.SourceBranch'], 'refs/heads/release/') }}:
+        - group: INT
+    - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+        - group: PROD
   jobs:
     - job: upload
-      displayName: Static Web Page Deployment
+      displayName: 'Static Web Page Deployment'
       variables:
         AZURE_RESOURCE_GROUP: $(APP_NAME)-$(STAGE_NAME)-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
       pool:
         vmImage: ubuntu-latest
       steps:
         - task: NodeTool@0
-          displayName: Install Node.js
+          displayName: 'Install Node.js'
           inputs:
             versionSpec: ${{ variables['NODEJS_VERSION'] }}
         - script: npm install
-          displayName: Setup NPM
+          displayName: 'Setup NPM'
         - script: cp env/.env.${{ lower(variables['STAGE_NAME']) }} .env
-          displayName: Promote Env
+          displayName: 'Promote Env'
         - script: npm run build
-          displayName: Build Static Web Page
+          displayName: 'Build Static Web Page'
         - task: AzureCLI@2
           displayName: 'Upload Static Web Page'
           inputs:
@@ -35,7 +40,7 @@
               --destination "\$web" \
               --overwrite true
     - job: update
-      displayName: Static Web Page Setup
+      displayName: 'Static Web Page Setup'
       dependsOn: [ upload ]
       condition: succeeded('upload')
       variables:

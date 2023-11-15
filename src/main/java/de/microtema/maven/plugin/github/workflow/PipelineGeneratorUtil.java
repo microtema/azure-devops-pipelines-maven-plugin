@@ -321,7 +321,7 @@ public class PipelineGeneratorUtil {
 
     public static boolean isDotNetRepo(MavenProject project) {
 
-        return new File(getRootPath(project), project.getName() + ".csproj").exists();
+        return new File(getRootPath(project), project.getArtifactId() + ".sln").exists();
     }
 
     public static boolean isTerraformRepo(MavenProject project) {

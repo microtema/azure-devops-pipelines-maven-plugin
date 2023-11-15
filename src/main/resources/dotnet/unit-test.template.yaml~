@@ -4,9 +4,9 @@
   condition: succeeded('security_check')
   jobs:
     - job: unit_test
-      displayName: Unit Tests
+      displayName: unit test
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: dotnet test UnitTest
-          displayName: 'Run Unit Tests'
+        - script: echo dotnet test
+          displayName: 'Run a one-line script'

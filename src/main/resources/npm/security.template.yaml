@@ -1,15 +1,15 @@
 - stage: security_check
-  displayName: Security Check
+  displayName: 'Security Check'
   dependsOn: [ compile ]
   condition: succeeded('compile')
   jobs:
     - job: security_check
-      displayName: Security Check
+      displayName: 'Security Check'
       pool:
         vmImage: ubuntu-latest
       steps:
         - task: NodeTool@0
-          displayName: Install Node.js
+          displayName: 'Install Node.js'
           inputs:
             versionSpec: ${{ variables['NODEJS_VERSION'] }}
         - script: npm install

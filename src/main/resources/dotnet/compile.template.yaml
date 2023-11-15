@@ -8,5 +8,5 @@
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo dotnet restore
+        - script: dotnet restore
           displayName: 'Run a one-line script'

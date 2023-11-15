@@ -1,10 +1,10 @@
 - stage: documentation
-  displayName: Documentation
+  displayName: 'Documentation'
   dependsOn: [ downstream ]
   condition: and(succeeded('downstream'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   jobs:
     - job: documentation
-      displayName: Documentation
+      displayName: 'Documentation'
       pool:
         vmImage: ubuntu-latest
       steps:

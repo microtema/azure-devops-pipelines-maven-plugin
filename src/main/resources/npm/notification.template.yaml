@@ -1,10 +1,10 @@
 - stage: notification
-  displayName: Notification
+  displayName: 'Notification'
   dependsOn: [ documentation ]
   condition: and(succeeded('documentation'), or(eq(variables.isRelease, true), eq(variables.isMaster, true)))
   jobs:
     - job: notification
-      displayName: Notification
+      displayName: 'Notification'
       pool:
         vmImage: ubuntu-latest
       steps:

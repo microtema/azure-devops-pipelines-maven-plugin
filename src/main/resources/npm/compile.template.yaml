@@ -1,5 +1,5 @@
 - stage: compile
-  displayName: Compile
+  displayName: 'Compile'
   dependsOn: [ versioning ]
   condition: succeeded('versioning')
   jobs:
@@ -9,7 +9,7 @@
         vmImage: ubuntu-latest
       steps:
         - task: NodeTool@0
-          displayName: Install Node.js
+          displayName: 'Install Node.js'
           inputs:
             versionSpec: ${{ variables['NODEJS_VERSION'] }}
         - script: npm install

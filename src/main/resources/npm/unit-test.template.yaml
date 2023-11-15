@@ -1,15 +1,15 @@
 - stage: unit_test
-  displayName: Unit Test
+  displayName: 'Unit Test'
   dependsOn: [ security_check ]
   condition: succeeded('security_check')
   jobs:
     - job: unit_test
-      displayName: unit test
+      displayName: 'Unit Test'
       pool:
         vmImage: ubuntu-latest
       steps:
         - task: NodeTool@0
-          displayName: Install Node.js
+          displayName: 'Install Node.js'
           inputs:
             versionSpec: ${{ variables['NODEJS_VERSION'] }}
         - script: npm install

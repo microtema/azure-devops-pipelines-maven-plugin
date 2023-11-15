@@ -1,10 +1,10 @@
 - stage: versioning
-  displayName: Versioning
+  displayName: 'Versioning'
   dependsOn: [ initialize ]
   condition: succeeded('initialize')
   jobs:
     - job: versioning
-      displayName: Versioning
+      displayName: 'Versioning'
       pool:
         vmImage: ubuntu-latest
       steps:

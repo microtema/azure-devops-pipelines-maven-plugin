@@ -1,10 +1,10 @@
 - stage: readiness
-  displayName: Readiness
+  displayName: 'Readiness'
   dependsOn: [ deployment ]
   condition: and(succeeded('deployment'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   jobs:
     - job: Readiness
-      displayName: Readiness
+      displayName: 'Readiness'
       pool:
         vmImage: ubuntu-latest
       steps:
