@@ -112,7 +112,6 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         pipeline = pipeline
                 .replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName))
                 .replace("%VERSION%", version)
-                .replace("%BRANCH_NAME%", metaData.getBranchPattern())
                 .replace("  %ENV%", getVariablesTemplate(defaultVariables))
                 .replace("  %JOBS%", getStagesTemplate(metaData, templateStageServices));
 

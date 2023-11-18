@@ -1,16 +1,19 @@
-############## Created by de.microtema:github-workflow-maven-plugin ############
+############## Created by de.microtema:azure-devops-pipelines-maven-plugin ############
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
-# Files under .github/workflows folder are generated and should not be edited. #
+# azure-pipelines.yml is generated and should not be edited. #
 ################################################################################
 
-name: '%PIPELINE_NAME%'
+trigger: [%TRIGGER%]
 
-on:
-  push:
-    branches:
-      - %BRANCH_NAME%
+%VARIABLES%
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
+    STAGE_NAME: "DEV"
+  ${{ elseif startsWith(variables['Build.SourceBranch'], 'refs/heads/release/') }}:
+    STAGE_NAME: "INT"
+  ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    STAGE_NAME: "PROD"
+  ${{ else }}:
+    STAGE_NAME: "DEV"
 
-  %ENV%
-
-jobs:
-  %JOBS%
+stages:
+%STAGES%

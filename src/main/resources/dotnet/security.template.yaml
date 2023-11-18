@@ -1,6 +1,6 @@
 - stage: security_check
   displayName: Security Check
-  dependsOn: [ compile ]
+  dependsOn: [ compile, initialize ]
   condition: succeeded('compile')
   jobs:
     - job: security_check
@@ -8,5 +8,25 @@
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo security_check
-          displayName: 'Run a one-line script'
+        - task: Bash@3
+          displayName: 'Check NuGet vulnerabilities'
+          inputs:
+            targetType: 'inline'
+            script: |
+              dotnet restore
+              dotnet list package --vulnerable --include-transitive 2>&1 | tee build.log
+              echo "Analyze dotnet list package command log output..."
+              grep -q -i "has the following vulnerable packages" build.log
+              GREP_EXIT_CODE=$?
+              echo "##vso[task.setvariable variable=GREP_EXIT_CODE]$GREP_EXIT_CODE"
+        - task: PublishPipelineArtifact@1
+          displayName: 'Publish build.log as artifact'
+          inputs:
+            targetPath: '$(Build.SourcesDirectory)/build.log'
+            artifact: 'BuildLogs'
+        - script: |
+            if [[ "$(GREP_EXIT_CODE)" -eq 0 ]]; then
+              echo "Pipeline failed due to vulnerabilities."
+              exit 1
+            fi
+          displayName: 'Fail Pipeline on Vulnerabilities'

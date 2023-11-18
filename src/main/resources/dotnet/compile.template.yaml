@@ -1,12 +1,12 @@
 - stage: compile
   displayName: Compile
-  dependsOn: [ versioning ]
+  dependsOn: [ versioning, initialize ]
   condition: succeeded('versioning')
   jobs:
-    - job: versioning
-      displayName: versioning
+    - job: compile
+      displayName: Compile
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo dotnet restore
+        - script: dotnet restore
           displayName: 'Run a one-line script'

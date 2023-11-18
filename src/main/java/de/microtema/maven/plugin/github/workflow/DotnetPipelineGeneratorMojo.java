@@ -11,6 +11,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil.*;
@@ -90,12 +91,9 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
         defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
 
-       // defaultVariables.put("REPO_ORGANISATION", "mariotema");
-       // defaultVariables.put("REPO_PROJECT", "microtema");
-
         defaultVariables.putAll(variables);
 
-        String pipeline = PipelineGeneratorUtil.getTemplate("dotnet/pipeline");
+        String pipeline = PipelineGeneratorUtil.getTemplate("pipeline");
 
         List<MetaData> workflowFiles = getWorkflowFiles(project, stages, downStreams);
 
@@ -106,6 +104,7 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
                         .toList());
 
         pipeline = pipeline
+                .replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName))
                 .replace("%TRIGGER%", String.join(", ", branches))
                 .replace("%VARIABLES%", getVariablesTemplate(defaultVariables))
                 .replace("%STAGES%", getStagesTemplate(metaData, templateStageServices));

@@ -2,11 +2,13 @@
   displayName: Quality Gate
   dependsOn: [ unit_test, it_test ]
   condition: and(succeeded('unit_test'), succeeded('it_test'))
+  variables:
+    - group: ${{ variables['STAGE_NAME'] }}
   jobs:
     - job: quality_gate
       displayName: quality gate
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo quality_gate
+        - script: echo $(TEAM_SCALE_PAT)
           displayName: 'Run a one-line script'

@@ -8,5 +8,5 @@
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo handle semver 2.0
+        - script: echo $(VERSION)
           displayName: 'Run a one-line script'

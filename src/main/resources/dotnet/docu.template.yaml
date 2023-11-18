@@ -1,23 +1,27 @@
 - stage: documentation
-  displayName: Documentation
+  displayName: 'Documentation'
   dependsOn: [ downstream ]
-  condition: and(succeeded('readiness'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  condition: and(succeeded('downstream'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: ${{ variables['STAGE_NAME'] }}
   jobs:
     - job: documentation
-      displayName: Documentation
+      displayName: 'Documentation'
       pool:
         vmImage: ubuntu-latest
       steps:
         - script: |
-            git clone https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/doc-as-code
+            git clone https://$(REPO_TOKEN)@$(REPO_HOST)/$(REPO_ORGANISATION)/_git/doc-as-code
             cd doc-as-code 
             git checkout $(BRANCH_NAME)
           displayName: 'Git: checkout'
         - script: |
-            mkdir -p doc-as-code/.docs/$(APP_NAME)/deleteme
-            rm -r doc-as-code/.docs/$(APP_NAME)/*
-            cp -R docs/. doc-as-code/.docs/$(APP_NAME)
-            cp README.md doc-as-code/docs/$(APP_NAME)/$(APP_NAME).md
+            mkdir -p doc-as-code/.docs/$(APP_DISPLAY_NAME)/deleteme
+            rm -r doc-as-code/.docs/$(APP_DISPLAY_NAME)/*
+            cp -R docs/. doc-as-code/.docs/$(APP_DISPLAY_NAME)
+            mkdir -p doc-as-code/docs/$(APP_DISPLAY_NAME)/deleteme
+            rm -r doc-as-code/docs/$(APP_DISPLAY_NAME)/*
+            cp README.md doc-as-code/docs/$(APP_DISPLAY_NAME)/$(APP_DISPLAY_NAME).md
           displayName: 'Copy Docu'
         - script: |
             cd doc-as-code
@@ -27,6 +31,6 @@
             git status
             if [[ `git status --porcelain` ]]; then
                git commit -am "Update DOC_AS_CODE repo within docs from $(REPO_NAME) commit $(GIT_COMMIT)"
-               git push https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/doc-as-code
+               git push https://$(REPO_TOKEN)@$(REPO_HOST)/$(REPO_ORGANISATION)/_git/doc-as-code
             fi
           displayName: 'Git: Commit'

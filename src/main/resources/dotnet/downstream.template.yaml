@@ -7,6 +7,8 @@
       displayName: downstream
       pool:
         vmImage: ubuntu-latest
+      variables:
+        SERVICE_URL: "http://$(APP_NAME)-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT).westeurope.azurecontainer.io:$(APP_PORT)"
       steps:
-        - script: echo downstream
+        - script: echo downstream -e SERVICE_URL=$(SERVICE_URL) -e STAGE_NAME=$(STAGE_NAME)
           displayName: 'Run a one-line script'

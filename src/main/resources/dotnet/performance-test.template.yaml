@@ -1,12 +1,29 @@
 - stage: performance_test
   displayName: Performance Test
   dependsOn: [ system_test ]
-  condition: succeeded('system_test')
+  condition: and(succeeded('system_test'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true)))
   jobs:
-    - job: system_test
-      displayName: Performance Test
+    - job: performance_test
+      displayName: 'Performance Test'
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo system_test
-          displayName: 'Run a one-line script'
+        - script: |
+            wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.3.tgz
+            tar -xzf apache-jmeter-5.3.tgz
+          displayName: 'Install Jmeter CLI'
+        - script: apache-jmeter-5.3/bin/jmeter -n -t jmeter/PerformanceTest.jmx -j target/jmeter.log -l target/results.jtl -e -o target/reports
+          displayName: Run Jmeter Plan
+        - task: PublishPipelineArtifact@1
+          displayName: 'Publish JMeter HTML Reports'
+          inputs:
+            targetPath: target/reports
+            artifact: jmeter-report
+        - script: python jmeter/converter.py target/results.jtl target/output.xml
+          displayName: 'Convert JMeter Results to JUnit Format'
+        - task: PublishTestResults@2
+          inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: target/output.xml
+            failTaskOnFailedTests: true
+          displayName: 'Publish Load Testing Results'

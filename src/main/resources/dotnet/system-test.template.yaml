@@ -4,9 +4,11 @@
   condition: and(succeeded('readiness'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true)))
   jobs:
     - job: system_test
-      displayName: System Test
+      displayName: System Tests
       pool:
         vmImage: ubuntu-latest
+      variables:
+        SERVICE_URL: "http://$(APP_NAME)-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT).westeurope.azurecontainer.io:$(APP_PORT)"
       steps:
-        - script: echo system_test
-          displayName: 'Run a one-line script'
+        - script: dotnet test SystemTests -e SERVICE_URL=$(SERVICE_URL)
+          displayName: 'Run System Tests'

@@ -8,5 +8,14 @@
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo build
-          displayName: 'Run a one-line script'
+        - script: echo '{"commitId":"$(GIT_COMMIT)","branchName":"$(BRANCH_NAME)"}' > WebAPI/gitinfo.json
+          displayName: Generate git-info file
+        - task: DotNetCoreCLI@2
+          inputs:
+            command: 'publish'
+            projects: WebAPI
+            zipAfterPublish: false
+            modifyOutputPath: false
+            arguments:  "-c Release -o ./public"
+        - publish: $(System.DefaultWorkingDirectory)/public
+          artifact: public

@@ -2,11 +2,28 @@
   displayName: Package
   dependsOn: [ build ]
   condition: and(succeeded('build'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: ${{ variables['STAGE_NAME'] }}
   jobs:
     - job: package
       displayName: package
       pool:
         vmImage: ubuntu-latest
       steps:
-        - script: echo package
-          displayName: 'Run a one-line script'
+        - download: current
+          artifact: public
+        - task: Docker@2
+          displayName: Build the image
+          inputs:
+            containerRegistry: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-DOCKER-REGISTRY-${{ upper(variables['STAGE_NAME']) }}
+            repository: $(DOCKER_REGISTRY)/$(APP_NAME)
+            command: "build"
+            tags: $(VERSION)
+            buildContext: $(Pipeline.Workspace)
+        - task: Docker@2
+          displayName: Push the Image
+          inputs:
+            containerRegistry: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-DOCKER-REGISTRY-${{ upper(variables['STAGE_NAME']) }}
+            repository: $(DOCKER_REGISTRY)/$(APP_NAME)
+            command: "push"
+            tags: $(VERSION)

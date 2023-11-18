@@ -2,11 +2,18 @@
   displayName: Readiness
   dependsOn: [ deployment ]
   condition: and(succeeded('deployment'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: ${{ variables['STAGE_NAME'] }}
   jobs:
     - job: Readiness
       displayName: Readiness
       pool:
         vmImage: ubuntu-latest
+      variables:
+        SERVICE_URL: "http://$(APP_NAME)-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT).westeurope.azurecontainer.io:$(APP_PORT)/gitinfo"
       steps:
-        - script: echo Readiness
+        - script: |
+            echo check the commit id [$(GIT_COMMIT)] from $(SERVICE_URL)
+            while [[ "$(curl -H X-API-KEY:API_KEY -s $SERVICE_URL | jq -r '.commitId')" != "$GIT_COMMIT" ]]; do sleep 10; done
           displayName: 'Run a one-line script'
+          timeoutInMinutes: 5
