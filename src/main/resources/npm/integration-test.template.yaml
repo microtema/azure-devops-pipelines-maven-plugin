@@ -14,5 +14,5 @@
             versionSpec: ${{ variables['NODEJS_VERSION'] }}
         - script: npm install
           displayName: 'Install npm packages'
-        - script: npm run test:integration
+        - script: npm run integration:test
           displayName: 'Run a one-line script'

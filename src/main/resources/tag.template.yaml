@@ -1,10 +1,10 @@
 - stage: tag
-  displayName: Tag Release
+  displayName: 'Tag Release'
   dependsOn: [ package ]
-  condition: and(succeeded('build'), eq(variables.isMaster, true))
+  condition: and(succeeded('package'), eq(variables.isMaster, true))
   jobs:
     - job: tag
-      displayName: package
+      displayName: 'Tag Release'
       pool:
         vmImage: ubuntu-latest
       steps:

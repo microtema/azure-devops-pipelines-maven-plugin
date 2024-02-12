@@ -1,7 +1,7 @@
 - stage: deployment
   displayName: 'Deployment'
   dependsOn: [ package, tag ]
-  condition: and(succeeded('package'), succeeded('tag'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  condition: and(succeeded('package'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   variables:
     - group: ${{ variables['STAGE_NAME'] }}
   jobs:
