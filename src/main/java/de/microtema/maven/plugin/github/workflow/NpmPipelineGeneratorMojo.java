@@ -7,6 +7,7 @@ import de.microtema.model.converter.util.ClassUtil;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -28,10 +29,6 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
 
         injectTemplateStageServices();
 
-        File rootDir = getOrCreateWorkflowsDir();
-
-        cleanupWorkflows(rootDir);
-
         applyDefaultVariables();
 
         List<MetaData> workflows = getWorkflowFiles(project, stages, downStreams);
@@ -42,16 +39,23 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
     }
 
     void injectTemplateStageServices() {
+        templateStageServices.add(ClassUtil.createInstance(InitializeTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(VersioningTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(CompileTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(SecurityTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(UnitTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(IntegrationTestTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(QualityGateTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(BuildTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(PackageTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.TagTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DeploymentTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(ReadinessTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(DownstreamTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(NotificationTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.ReadinessTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(SystemTestTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.PerformanceTestTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.DownstreamTemplateStageService.class, Arrays.asList(ClassUtil.createInstance(SystemTestTemplateStageService.class), ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.PerformanceTestTemplateStageService.class))));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.DocuTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.NotificationTemplateStageService.class));
     }
 
     void applyDefaultVariables() {
@@ -59,67 +63,52 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("APP_NAME", project.getArtifactId());
         defaultVariables.put("APP_DISPLAY_NAME", appName);
 
-        defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
-
-        if (PipelineGeneratorUtil.hasSonarProperties(project)) {
-
-            String sonarToken = PipelineGeneratorUtil.getProperty(project, "sonar.login", "${{ secrets.SONAR_TOKEN }}");
-
-            defaultVariables.put("SONAR_TOKEN", sonarToken);
-        }
-
-        defaultVariables.put("NODE_VERSION", PipelineGeneratorUtil.getProperty(project, "node.version", "16"));
+        // defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
 
         if (!downStreams.isEmpty()) {
 
+            /*
             String variableValue = variables.getOrDefault("REPO_ACCESS_TOKEN", "${{ secrets.REPO_ACCESS_TOKEN }}");
 
             variableValue = PipelineGeneratorUtil.wrapSecretVariable(variableValue);
 
             variables.put("REPO_ACCESS_TOKEN", variableValue);
+             */
         }
     }
 
     void executeImpl(MetaData metaData, List<MetaData> workflows) {
 
-        String rootPath = PipelineGeneratorUtil.getRootPath(project);
+        defaultVariables.put("VERSION", project.getVersion());
+        defaultVariables.put("GIT_COMMIT", "$(Build.SourceVersion)");
+        defaultVariables.put("REPO_NAME", "$(Build.Repository.Name)");
+        defaultVariables.put("BRANCH_NAME", "$[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]");
 
-        File dir = new File(rootPath, pipelineFileName);
+        defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");
+        defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
+        defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
 
-        String version = project.getVersion();
-
-        switch (metaData.getBranchName()) {
-            case "feature":
-            case "develop":
-                break;
-            case "release":
-                version = version.replace("-SNAPSHOT", "-RC");
-                break;
-            case "hotfix":
-                version = version.replace("-SNAPSHOT", "");
-                break;
-            case "master":
-                version = version.replace("-SNAPSHOT", "");
-                version = version.replace("-RC", "");
-                version = version.replace("-FIX", "");
-                break;
-        }
-
-        defaultVariables.put("VERSION", version);
+        defaultVariables.putAll(variables);
 
         String pipeline = PipelineGeneratorUtil.getTemplate("pipeline");
 
+        List<MetaData> workflowFiles = getWorkflowFiles(project, stages, downStreams);
+
+        List<String> branches = workflowFiles.stream()
+                .map(MetaData::getBranchPattern)
+                .collect(Collectors.toList()).stream()
+                .sorted().collect(Collectors
+                        .toList());
+
         pipeline = pipeline
                 .replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName))
-                .replace("%VERSION%", version)
-                .replace("  %ENV%", getVariablesTemplate(defaultVariables))
-                .replace("  %JOBS%", getStagesTemplate(metaData, templateStageServices));
+                .replace("%TRIGGER%", String.join(", ", branches))
+                .replace("%VARIABLES%", getVariablesTemplate(defaultVariables))
+                .replace("%STAGES%", getStagesTemplate(metaData, templateStageServices));
 
-        String workflowFileName = getWorkflowFileName(metaData, workflows);
+        File githubWorkflow = new File(pipelineFileName);
 
-        File githubWorkflow = new File(dir, workflowFileName);
-
-        logMessage("Generate Github Workflows Pipeline for " + appName + " -> " + workflowFileName);
+        logMessage("Generate Azure DevOps pipelines for " + appName + " -> " + pipelineFileName);
 
         pipeline = PipelineGeneratorUtil.removeEmptyLines(pipeline);
 

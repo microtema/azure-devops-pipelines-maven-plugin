@@ -4,14 +4,11 @@ import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
 import de.microtema.maven.plugin.github.workflow.job.dotnet.*;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import de.microtema.model.converter.util.ClassUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil.*;
@@ -50,15 +47,15 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
         templateStageServices.add(ClassUtil.createInstance(QualityGateTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(BuildTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(PackageTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.TagTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DbMigrationTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DeploymentTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(ReadinessTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.ReadinessTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(SystemTestTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(PerformanceTestTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(DownstreamTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(DocuTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(NotificationTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.PerformanceTestTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.DownstreamTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.DocuTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(de.microtema.maven.plugin.github.workflow.job.NotificationTemplateStageService.class));
     }
 
     void applyDefaultVariables() {

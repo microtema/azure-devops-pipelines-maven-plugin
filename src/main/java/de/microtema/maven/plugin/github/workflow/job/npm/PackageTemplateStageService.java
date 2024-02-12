@@ -1,14 +1,14 @@
-package de.microtema.maven.plugin.github.workflow.job.dotnet;
+package de.microtema.maven.plugin.github.workflow.job.npm;
 
 import de.microtema.maven.plugin.github.workflow.PipelineGeneratorMojo;
 import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
-public class DownstreamTemplateStageService implements TemplateStageService {
+public class PackageTemplateStageService implements TemplateStageService {
 
     @Override
     public String getTemplateName() {
-        return "dotnet/downstream";
+        return "npm/package";
     }
 
     @Override

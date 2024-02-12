@@ -1,0 +1,14 @@
+- stage: initialize
+  displayName: 'Initialize'
+  jobs:
+    - job: initialize
+      displayName: 'Initialize'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: NodeTool@0
+          displayName: Install Node.js
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm --version
+          displayName: 'Run a one-line script'

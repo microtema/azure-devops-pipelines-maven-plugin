@@ -1,14 +1,17 @@
-compile:
-  name: Compile
-  runs-on: [ %RUNS_ON% ]
-  needs: [ versioning ]
-  steps:
-    - name: 'Checkout'
-      uses: actions/checkout@v3
-    - name: 'Node: Setup'
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    - name: 'NPM: install'
-      run: npm install --force
+- stage: compile
+  displayName: 'Compile'
+  dependsOn: [ versioning ]
+  condition: succeeded('versioning')
+  jobs:
+    - job: versioning
+      displayName: 'Versioning'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm install
+          displayName: 'Run a one-line script'
 

@@ -1,7 +1,0 @@
-promote:
-  name: '%JOB_NAME%'
-  runs-on: [ %RUNS_ON% ]
-  needs: [ %NEEDS% ]
-  steps:
-    - name: 'Shell: promote'
-      run: echo 'TBD'

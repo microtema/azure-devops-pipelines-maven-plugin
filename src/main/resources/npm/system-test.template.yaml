@@ -1,0 +1,20 @@
+- stage: system_test
+  displayName: 'System Test'
+  dependsOn: [ readiness ]
+  condition: and(succeeded('readiness'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true)))
+  variables:
+    SERVICE_URL: "https://$(APP_NAME)-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT).azurewebsites.net"
+  jobs:
+    - job: system_test
+      displayName: 'System Test'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm install
+          displayName: 'Install npm packages'
+        - script: npm run test:system
+          displayName: 'Run a one-line script'

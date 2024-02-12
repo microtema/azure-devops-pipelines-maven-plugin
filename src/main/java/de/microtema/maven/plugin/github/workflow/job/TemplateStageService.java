@@ -23,42 +23,6 @@ public interface TemplateStageService {
                 .replaceAll(regex, replacement).toLowerCase();
     }
 
-    default String getJobId() {
-
-        return getTemplateName();
-    }
-
-    default String getJobName() {
-
-        return WordUtils.capitalize(getTemplateName());
-    }
-
-    default JobData getJobData() {
-
-        JobData jobData = new JobData();
-
-        jobData.setId(getJobId());
-        jobData.setName(getJobName());
-
-        return jobData;
-    }
-
-    default String getJobIds(MetaData metaData, String stageName) {
-
-        List<String> stageNames = metaData.getStageNames();
-
-        String jobName = getJobId();
-
-        if (CollectionUtils.size(stageNames) == 1) {
-            return jobName;
-        }
-
-        return stageNames.stream()
-                .filter(it -> StringUtils.equalsIgnoreCase(it, stageName))
-                .map(it -> jobName + "-" + it)
-                .collect(Collectors.joining(" "));
-    }
-
     default String getTemplate(PipelineGeneratorMojo mojo, MetaData metaData) {
 
         if (!access(mojo, metaData)) {
@@ -66,6 +30,17 @@ public interface TemplateStageService {
         }
 
         return PipelineGeneratorUtil.getTemplate(getTemplateName());
+    }
+
+    default String getJobId(){
+
+        String templatePath = getTemplateName();
+
+        int indexOf = templatePath.lastIndexOf("/");
+
+        String templateName = templatePath.substring(indexOf+1);
+
+        return templateName.replaceAll("-", "_");
     }
 
     default boolean access(PipelineGeneratorMojo mojo, MetaData metaData) {

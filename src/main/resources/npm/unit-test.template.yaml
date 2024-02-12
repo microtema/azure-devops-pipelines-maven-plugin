@@ -1,15 +1,18 @@
-unit-test:
-  name: Unit Test
-  runs-on: [ %RUNS_ON% ]
-  needs: [ compile ]
-  steps:
-    - name: 'Checkout'
-      uses: actions/checkout@v3
-    - name: 'Node: Setup'
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    - name: 'NPM: install'
-      run: npm install --force
-    - name: 'NPM: test'
-      run: npm test
+- stage: unit_test
+  displayName: 'Unit Test'
+  dependsOn: [ security_check ]
+  condition: succeeded('security_check')
+  jobs:
+    - job: unit_test
+      displayName: 'Unit Test'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm install
+          displayName: 'Run a one-line script'
+        - script: CI=true npm test
+          displayName: 'Run a one-line script'

@@ -7,12 +7,20 @@
       displayName: 'Performance Test'
       pool:
         vmImage: ubuntu-latest
+      variables:
+        SERVICE_URL: "http://$(APP_NAME)-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT).westeurope.azurecontainer.io:$(APP_PORT)"
       steps:
         - script: |
             wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.3.tgz
             tar -xzf apache-jmeter-5.3.tgz
           displayName: 'Install Jmeter CLI'
-        - script: apache-jmeter-5.3/bin/jmeter -n -t jmeter/PerformanceTest.jmx -j target/jmeter.log -l target/results.jtl -e -o target/reports
+        - script: |
+            apache-jmeter-5.3/bin/jmeter \
+              -n -t jmeter/PerformanceTest.jmx \
+              -J"webservice.host"="$(SERVICE_URL)" \
+              -j target/jmeter.log \
+              -l target/results.jtl \
+              -e -o target/reports
           displayName: Run Jmeter Plan
         - task: PublishPipelineArtifact@1
           displayName: 'Publish JMeter HTML Reports'

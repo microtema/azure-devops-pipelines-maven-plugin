@@ -1,15 +1,19 @@
-security-check:
-  name: Security Check
-  runs-on: [ %RUNS_ON% ]
-  needs: [ compile ]
-  steps:
-    - name: 'Checkout'
-      uses: actions/checkout@v3
-    - name: 'Node: Setup'
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    - name: 'NPM: install'
-      run: npm install --force
-    - name: 'NPM: security-check'
-      run: npm run security-check
+- stage: security_check
+  displayName: 'Security Check'
+  dependsOn: [ compile ]
+  condition: succeeded('compile')
+  jobs:
+    - job: security_check
+      displayName: 'Security Check'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm install
+          displayName: 'Run a one-line script'
+        - script: echo npm run security:check
+          displayName: 'Run a one-line script'
+          timeoutInMinutes: 5

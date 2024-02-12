@@ -1,15 +1,17 @@
-readiness:
-  name: '%JOB_NAME%'
-  runs-on: [ %RUNS_ON% ]
-  needs: [ %NEEDS% ]
-  timeout-minutes: 15
-  env:
-    DEPLOYMENT_REPOSITORY: ${{ github.repository }}-deployments
-    REPO_ACCESS_TOKEN: %REPO_ACCESS_TOKEN%
-  steps:
-    - name: Awaiting completion of Workflow ${{ needs.deployment.outputs.runId }}
-      uses: microtema/workflow-wait@v2.0
-      with:
-        token: ${{ env.REPO_ACCESS_TOKEN }}
-        repo: ${{ env.DEPLOYMENT_REPOSITORY }}
-        runId: ${{ needs.deployment.outputs.runId }}
+- stage: readiness
+  displayName: 'Readiness'
+  dependsOn: [ deployment ]
+  condition: and(succeeded('deployment'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    SERVICE_URL: "https://$(APP_NAME)-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT).azurewebsites.net/rest/api/git/info"
+  jobs:
+    - job: Readiness
+      displayName: 'Readiness'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - script: |
+            echo check the commit id [$(GIT_COMMIT)] from $(SERVICE_URL)
+            while [[ "$(curl -H X-API-KEY:API_KEY -s $SERVICE_URL | jq -r '.commitId')" != "$GIT_COMMIT" ]]; do sleep 10; done
+          displayName: 'Run a one-line script'
+          timeoutInMinutes: 5

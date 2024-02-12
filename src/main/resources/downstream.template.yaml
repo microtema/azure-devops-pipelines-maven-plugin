@@ -1,15 +1,14 @@
-downstream:
-  name: '%JOB_NAME%'
-  runs-on: [ %RUNS_ON% ]
-  needs: [ %NEEDS% ]
-  env:
-    DOWNSTREAM_REPOSITORY: %DOWNSTREAM_REPOSITORY%
-    REPO_ACCESS_TOKEN: %REPO_ACCESS_TOKEN%
-  steps:
-    - name: Trigger Downstream Workflow
-      uses: microtema/workflow-dispatch@v2.0
-      with:
-        workflow: '%WORKFLOW%'
-        repo: ${{ env.DOWNSTREAM_REPOSITORY }}
-        token: ${{ env.REPO_ACCESS_TOKEN }}
-        ref: ${{ github.ref }}
+- stage: downstream
+  displayName: 'E2E Test'
+  dependsOn: [ %DEPENDS_ON% ]
+  condition: and(succeeded('performance_test'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true)))
+  jobs:
+    - job: downstream
+      displayName: 'Downstream'
+      pool:
+        vmImage: ubuntu-latest
+      variables:
+        SERVICE_URL: "http://$(APP_NAME)-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT).westeurope.azurecontainer.io:$(APP_PORT)"
+      steps:
+        - script: echo downstream -e SERVICE_URL=$(SERVICE_URL) -e STAGE_NAME=$(STAGE_NAME)
+          displayName: 'Run a one-line script'

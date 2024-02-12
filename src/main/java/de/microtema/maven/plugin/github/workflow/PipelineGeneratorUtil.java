@@ -51,7 +51,7 @@ public class PipelineGeneratorUtil {
 
         try {
             return IOUtils.toString(inputStream, Charset.defaultCharset());
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new IllegalStateException("Unable to get template: " + templateName, e);
         }
     }
@@ -86,34 +86,9 @@ public class PipelineGeneratorUtil {
         return new File(getRootPath(project), "settings.xml").exists();
     }
 
-    @SuppressWarnings("unchecked")
-    public static boolean existsLiquibase(MavenProject project) {
-
-        boolean changelog = new File(getRootPath(project), "src/main/resources/db/changelog").exists();
-
-        if (!changelog) {
-            return false;
-        }
-
-        List<Dependency> runtimeDependencies = project.getDependencies();
-
-        if (CollectionUtils.isEmpty(runtimeDependencies)) {
-            return false;
-        }
-
-        return runtimeDependencies
-                .stream()
-                .noneMatch(it -> StringUtils.equalsIgnoreCase("liquibase-core", it.getArtifactId()) && StringUtils.equalsIgnoreCase("compile", it.getScope()));
-    }
-
-    public static boolean existsFlyway(MavenProject project) {
-
-        return new File(getRootPath(project), "src/main/resources/db/migration").exists();
-    }
-
     public static boolean existsPerformanceTests(MavenProject project) {
 
-        return new File(getRootPath(project), "src/test/jmeter").exists();
+        return new File(getRootPath(project), "jmeter").exists();
     }
 
     public static boolean hasE2ETests(MavenProject project) {
@@ -479,32 +454,6 @@ public class PipelineGeneratorUtil {
         }
 
         return value.replaceAll("\"", "");
-    }
-
-    public static String wrapSecretVariable(String variableValue) {
-
-        if (variableValue.startsWith("secrets.")) {
-
-            return "${{ " + variableValue + " }}";
-        }
-
-        return variableValue;
-    }
-
-    public static File getOrCreateWorkflowsDir(MavenProject project, String githubWorkflowsDir) {
-
-        String rootPath = PipelineGeneratorUtil.getRootPath(project);
-
-        File rootDir = new File(rootPath, githubWorkflowsDir);
-        if (!rootDir.exists()) {
-
-            boolean mkdirs = rootDir.mkdirs();
-
-            if (mkdirs) {
-                logMessage("Create .github directories");
-            }
-        }
-        return rootDir;
     }
 
     public static void cleanupWorkflows(File rootDir, String workflowFilePostFixName) {

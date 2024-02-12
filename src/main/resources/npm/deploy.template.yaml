@@ -1,20 +1,114 @@
-deployment:
-  name: '%JOB_NAME%'
-  runs-on: [ %RUNS_ON% ]
-  needs: [ build ]
-  env:
-    BUILD_DIR: %BUILD_DIR%
-    S3_BUCKET: %S3_BUCKET%
-  steps:
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-region: %AWS_REGION%
-        aws-access-key-id: %AWS_ACCESS_KEY_ID%
-        aws-secret-access-key: %AWS_SECRET_ACCESS_KEY%
-    - name: 'Artifact: download'
-      uses: actions/download-artifact@v2
-      with:
-        name: dist-artifact
-    - name: 'AWS: S3 Sync'
-      run: aws s3 sync ./$BUILD_DIR/* $S3_BUCKET
+- stage: deployment
+  displayName: 'Deployment'
+  dependsOn: [ package, tag ]
+  condition: and(succeeded('package'), succeeded('tag'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: ${{ variables['STAGE_NAME'] }}
+  jobs:
+    - job: iac
+      displayName: 'Infra as Code'
+      variables:
+        AZURE_RESOURCE_GROUP: ${{ lower(variables['APP_NAME']) }}-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: AzureCLI@2
+          displayName: 'Terraform Init'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            workingDirectory: terraform
+            addSpnToEnvironment: true
+            inlineScript: |
+              export ARM_SUBSCRIPTION_ID="$(az account show --query id --output tsv)"
+              export ARM_TENANT_ID="$tenantId"
+              export ARM_CLIENT_ID="$servicePrincipalId"
+              export ARM_CLIENT_SECRET="$servicePrincipalKey"
+              
+              terraform init \
+                -backend-config="resource_group_name=$(AZURE_RESOURCE_GROUP)" \
+                -backend-config="storage_account_name=${AZURE_RESOURCE_GROUP//[^[:alnum:]]/""}"
+        - task: AzureCLI@2
+          displayName: 'Terraform Plan'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            workingDirectory: terraform
+            addSpnToEnvironment: true
+            inlineScript: |
+              export ARM_SUBSCRIPTION_ID="$(az account show --query id --output tsv)"
+              export ARM_TENANT_ID="$tenantId"
+              export ARM_CLIENT_ID="$servicePrincipalId"
+              export ARM_CLIENT_SECRET="$servicePrincipalKey"
+              
+              terraform plan -out=tfplan \
+                -input=false \
+                -var=commit_id=$(GIT_COMMIT) \
+                -var=branch=$(VERSION) \
+                -var=env=${{ lower(variables['STAGE_NAME']) }} \
+                -var=counter=$(STAGE_COUNT) \
+                -var=location=$(AZURE_LOCATION) \
+                -var=location_short=$(AZURE_LOCATION_SHORT)
+        - task: AzureCLI@2
+          displayName: 'Terraform Apply'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            workingDirectory: terraform
+            addSpnToEnvironment: true
+            inlineScript: |
+              export ARM_SUBSCRIPTION_ID="$(az account show --query id --output tsv)"
+              export ARM_TENANT_ID="$tenantId"
+              export ARM_CLIENT_ID="$servicePrincipalId"
+              export ARM_CLIENT_SECRET="$servicePrincipalKey"
+              
+              terraform apply tfplan
+    - job: func_deployment
+      displayName: 'Deploy Azure Function App'
+      dependsOn: [ iac ]
+      variables:
+        AZURE_RESOURCE_GROUP: ${{ lower(variables['APP_NAME']) }}-${{ lower(variables['STAGE_NAME']) }}-$(AZURE_LOCATION_SHORT)-$(STAGE_COUNT)
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: FuncToolsInstaller@0
+          displayName: 'Install Azure Function CLI'
+          inputs:
+            version: 'latest'
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm install
+          displayName: 'Install npm packages'
+        - script: npm run build:production
+          displayName: 'Build production artifact'
+        - task: AzureCLI@2
+          displayName: 'Deploy Azure Functions'
+          inputs:
+            azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
+            ScriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              func azure functionapp publish $(AZURE_RESOURCE_GROUP) --typescript
+    - job: register_process
+      displayName: 'Register Runtime View'
+      dependsOn: [ func_deployment ]
+      variables:
+        REPORTING_SERVER: "http://dcs-process-reporting-euw-04.westeurope.azurecontainer.io:8080"
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm install
+          displayName: 'NPM Install'
+        - script: npm run build
+          displayName: 'Build production artifact'
+        - script: npm run register:process
+          displayName: 'Register BPMN Process'

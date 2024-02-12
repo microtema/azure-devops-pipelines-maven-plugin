@@ -1,15 +1,18 @@
-it-test:
-  name: Integration Test
-  runs-on: [ %RUNS_ON% ]
-  needs: [ compile ]
-  steps:
-    - name: 'Checkout'
-      uses: actions/checkout@v3
-    - name: 'Node: Setup'
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    - name: 'NPM: install'
-      run: npm install --force
-    - name: 'NPM: test'
-      run: npm run e2e
+- stage: it_test
+  displayName: 'Integration Test'
+  dependsOn: [ security_check ]
+  condition: succeeded('security_check')
+  jobs:
+    - job: system_test
+      displayName: 'Integration Test'
+      pool:
+        vmImage: ubuntu-latest
+      steps:
+        - task: NodeTool@0
+          displayName: 'Install Node.js'
+          inputs:
+            versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: npm install
+          displayName: 'Install npm packages'
+        - script: npm run test:integration
+          displayName: 'Run a one-line script'
