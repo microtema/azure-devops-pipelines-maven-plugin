@@ -3,7 +3,7 @@
   dependsOn: [ versioning ]
   condition: succeeded('versioning')
   jobs:
-    - job: versioning
+    - job: compile
       displayName: 'Versioning'
       pool:
         vmImage: ubuntu-latest
