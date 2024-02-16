@@ -28,6 +28,13 @@
             fi
           displayName: 'Copy SDD'
         - script: |
+            if [ -d "see" ]; then
+              mkdir -p doc-as-code/.see/$(APP_DISPLAY_NAME)/deleteme
+              rm -r doc-as-code/.see/$(APP_DISPLAY_NAME)/*
+              cp -R see/. doc-as-code/.see/$(APP_DISPLAY_NAME)
+            fi
+          displayName: 'Copy SEE'
+        - script: |
             cd doc-as-code
             git config --global user.email mario.tema@ascent.io
             git config --global user.name mario.tema
