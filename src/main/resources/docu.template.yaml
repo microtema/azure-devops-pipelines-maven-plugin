@@ -19,21 +19,21 @@
             mkdir -p doc-as-code/.docs/$(APP_DISPLAY_NAME)/deleteme
             rm -r doc-as-code/.docs/$(APP_DISPLAY_NAME)/*
             cp -R docs/. doc-as-code/.docs/$(APP_DISPLAY_NAME)
-          displayName: 'Copy Docu'
+          displayName: 'Copy Enterprise Architecture Documentation'
         - script: |
             if [ -d "sdd" ]; then
               mkdir -p doc-as-code/.sdd/$(APP_DISPLAY_NAME)/deleteme
               rm -r doc-as-code/.sdd/$(APP_DISPLAY_NAME)/*
               cp -R sdd/. doc-as-code/.sdd/$(APP_DISPLAY_NAME)
             fi
-          displayName: 'Copy SDD'
+          displayName: 'Copy Solution Design Documentation'
         - script: |
-            if [ -d "see" ]; then
-              mkdir -p doc-as-code/.see/$(APP_DISPLAY_NAME)/deleteme
-              rm -r doc-as-code/.see/$(APP_DISPLAY_NAME)/*
-              cp -R see/. doc-as-code/.see/$(APP_DISPLAY_NAME)
+            if [ -d "saa" ]; then
+              mkdir -p doc-as-code/.saa/$(APP_DISPLAY_NAME)/deleteme
+              rm -r doc-as-code/.saa/$(APP_DISPLAY_NAME)/*
+              cp -R saa/. doc-as-code/.saa/$(APP_DISPLAY_NAME)
             fi
-          displayName: 'Copy SEE'
+          displayName: 'Copy Standards Assurance Agreement'
         - script: |
             cd doc-as-code
             git config --global user.email mario.tema@ascent.io

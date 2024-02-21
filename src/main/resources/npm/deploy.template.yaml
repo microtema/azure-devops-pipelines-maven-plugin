@@ -48,6 +48,7 @@
                 -var=commit_id=$(GIT_COMMIT) \
                 -var=branch=$(VERSION) \
                 -var=env=${{ lower(variables['STAGE_NAME']) }} \
+                -var=project=${{ lower(variables['APP_NAME']) }} \
                 -var=counter=$(STAGE_COUNT) \
                 -var=location=$(AZURE_LOCATION) \
                 -var=location_short=$(AZURE_LOCATION_SHORT)
