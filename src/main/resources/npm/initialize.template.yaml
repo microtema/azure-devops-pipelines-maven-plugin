@@ -10,5 +10,7 @@
           displayName: Install Node.js
           inputs:
             versionSpec: ${{ variables['NODEJS_VERSION'] }}
+        - script: node --version
+          displayName: 'Node Version'
         - script: npm --version
-          displayName: 'Run a one-line script'
+          displayName: 'NPM Version'

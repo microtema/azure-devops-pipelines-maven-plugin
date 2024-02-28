@@ -93,8 +93,7 @@
             azureSubscription: ${{ upper(variables['PROJECT_NAME']) }}-AZURE-SUBSCRIPTION-${{ upper(variables['STAGE_NAME']) }}
             ScriptType: bash
             scriptLocation: inlineScript
-            inlineScript: |
-              func azure functionapp publish $(AZURE_RESOURCE_GROUP) --typescript
+            inlineScript: func azure functionapp publish $(AZURE_RESOURCE_GROUP) --typescript
     - job: register_process
       displayName: 'Register Runtime View'
       dependsOn: [ func_deployment ]
