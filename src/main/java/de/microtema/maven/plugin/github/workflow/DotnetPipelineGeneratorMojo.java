@@ -103,6 +103,8 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
         pipeline = pipeline
                 .replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName))
                 .replace("%TRIGGER%", String.join(", ", branches))
+                .replace("%SCHEDULE_CRON%", scheduleCron)
+                .replace("%SCHEDULE_BRANCHES%", String.join(", ", scheduleBranches))
                 .replace("%VARIABLES%", getVariablesTemplate(defaultVariables))
                 .replace("%STAGES%", getStagesTemplate(metaData, templateStageServices));
 

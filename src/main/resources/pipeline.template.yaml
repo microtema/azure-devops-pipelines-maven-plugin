@@ -5,6 +5,13 @@
 
 trigger: [%TRIGGER%]
 
+schedules:
+  - cron: '%SCHEDULE_CRON%'
+    displayName: Scheduled build
+    branches:
+      include: [%SCHEDULE_BRANCHES%]
+    always: true
+
 %VARIABLES%
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
     STAGE_NAME: "DEV"

@@ -23,6 +23,8 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         this.variables = mojo.variables;
         this.pipelineFileName = mojo.pipelineFileName;
         this.appName = mojo.getAppDisplayName();
+        this.scheduleCron = mojo.scheduleCron;
+        this.scheduleBranches = mojo.scheduleBranches;
     }
 
     public void execute() {
@@ -103,6 +105,8 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         pipeline = pipeline
                 .replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName))
                 .replace("%TRIGGER%", String.join(", ", branches))
+                .replace("%SCHEDULE_CRON%", scheduleCron)
+                .replace("%SCHEDULE_BRANCHES%", String.join(", ", scheduleBranches))
                 .replace("%VARIABLES%", getVariablesTemplate(defaultVariables))
                 .replace("%STAGES%", getStagesTemplate(metaData, templateStageServices));
 

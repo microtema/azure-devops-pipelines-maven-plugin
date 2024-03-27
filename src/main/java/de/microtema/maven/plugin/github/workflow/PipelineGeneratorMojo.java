@@ -28,6 +28,12 @@ public class PipelineGeneratorMojo extends AbstractMojo {
     @Parameter(property = "down-streams")
     Map<String, String> downStreams = new LinkedHashMap<>();
 
+    @Parameter(property = "schedule-cron")
+    String scheduleCron = "0 12 * * 0"; // Weekly Sunday build
+
+    @Parameter(property = "schedule-branches")
+    List<String> scheduleBranches = new ArrayList<>();
+
     final List<TemplateStageService> templateStageServices = new ArrayList<>();
     final LinkedHashMap<String, String> defaultVariables = new LinkedHashMap<>();
 
