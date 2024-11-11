@@ -1,0 +1,10 @@
+- stage: tag
+  displayName: Tag
+  dependsOn: [ build ]
+  condition: and(succeeded('build'), eq(variables.isMaster, true))
+  variables:
+    - group: DEV
+  jobs:
+    - job: tag
+      steps:
+        - script: echo npm run tag

@@ -1,0 +1,31 @@
+- stage: documentation
+  displayName: Documentation
+  dependsOn: [ system_test ]
+  condition: and(succeeded('system_test'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: DEV
+  jobs:
+    - job: documentation
+      steps:
+        - script: |
+            git clone https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(REPO_PROJECT)
+            cd $(REPO_PROJECT) 
+            git checkout $(BRANCH_NAME)
+          displayName: 'Git: checkout'
+        - script: |
+            git branch
+            mkdir -p $(REPO_PROJECT)/.docs/$(APP_NAME)/deleteme
+            rm -r $(REPO_PROJECT)/.docs/$(APP_NAME)/*
+            cp -R .docs/. $(REPO_PROJECT)/.docs/$(APP_NAME)
+          displayName: 'Copy Documentation'
+        - script: |
+            cd $(REPO_PROJECT)
+            git add --all
+            git status
+            if [[ `git status --porcelain` ]]; then
+               git config --global user.email mario.tema@adesso.de
+               git config --global user.name mario.tema
+               git commit -am "Update DOC_AS_CODE repo within docs from $(REPO_NAME) commit $(GIT_COMMIT)"
+               git push https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(REPO_PROJECT)
+            fi
+          displayName: 'Git: Commit'

@@ -32,10 +32,6 @@ public class TerraformPipelineGeneratorMojo extends PipelineGeneratorMojo {
 
         injectTemplateStageServices();
 
-        File rootDir = getOrCreateWorkflowsDir();
-
-        cleanupWorkflows(rootDir);
-
         applyDefaultVariables();
 
         List<MetaData> workflows = getWorkflowFiles(project, stages, downStreams);

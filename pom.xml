@@ -14,13 +14,12 @@
     <url>http://maven.apache.org</url>
 
     <properties>
-        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source.version>1.8</maven.compiler.source.version>
         <maven.compiler.target.version>1.8</maven.compiler.target.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.source.plugin>2.2.1</maven.source.plugin>
-        <maven.compiler.plugin>3.8.1</maven.compiler.plugin>
-        <maven.javadoc.plugin>2.10.4</maven.javadoc.plugin>
+        <maven.compiler.plugin>2.3.2</maven.compiler.plugin>
+        <maven.javadoc.plugin>3.1.1</maven.javadoc.plugin>
 
         <sonar.projectKey>${project.artifactId}</sonar.projectKey>
         <sonar.projectVersion>${project.version}</sonar.projectVersion>
@@ -320,7 +319,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.6.2</version>
                 <configuration>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
                 </configuration>
@@ -379,8 +377,8 @@
                 <version>${maven.compiler.plugin}</version>
                 <inherited>true</inherited>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <source>9</source>
+                    <target>9</target>
                     <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>

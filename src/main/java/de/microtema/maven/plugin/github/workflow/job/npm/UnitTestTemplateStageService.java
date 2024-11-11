@@ -21,6 +21,6 @@ public class UnitTestTemplateStageService implements TemplateStageService {
     @Override
     public boolean access(PipelineGeneratorMojo mojo, MetaData metaData) {
 
-        return PipelineGeneratorUtil.isNodeJsRepo(mojo.getProject());
+        return true;
     }
 }

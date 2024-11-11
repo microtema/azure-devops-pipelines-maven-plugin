@@ -29,7 +29,7 @@ public class BuildTemplateStageService implements TemplateStageService {
     @Override
     public boolean access(PipelineGeneratorMojo mojo, MetaData metaData) {
 
-        return PipelineGeneratorUtil.isNodeJsRepo(mojo.getProject());
+        return true;
     }
 
     @Override
@@ -41,12 +41,14 @@ public class BuildTemplateStageService implements TemplateStageService {
 
         String defaultTemplate = PipelineGeneratorUtil.getTemplate(getTemplateName());
 
-        String needs = templateStageServices.stream().filter(e -> e.access(mojo, metaData))
-                .map(e -> e.getJobIds(metaData, metaData.getStageName()))
-                .collect(Collectors.joining(", "));
+        List<String> jobIds = templateStageServices.stream()
+                .filter(e -> e.access(mojo, metaData))
+                .map(e -> e.getJobIds(metaData, metaData.getStageName())).collect(Collectors.toList());
 
         String template = PipelineGeneratorUtil.applyProperties(defaultTemplate, metaData.getStageName(), mojo.getVariables());
 
-        return template.replace("%NEEDS%", needs);
+        return template
+                .replace("%DEPENDS_ON%", String.join(", ", jobIds))
+                .replace("%CONDITIONS%", jobIds.stream().map(it -> "succeeded('" + it + "')").collect(Collectors.joining(", ")));
     }
 }

@@ -1,6 +1,6 @@
 package de.microtema.maven.plugin.github.workflow;
 
-import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
+
 import de.microtema.maven.plugin.github.workflow.job.npm.*;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import de.microtema.model.converter.util.ClassUtil;
@@ -8,8 +8,7 @@ import de.microtema.model.converter.util.ClassUtil;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+
 
 import static de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil.*;
 
@@ -21,16 +20,13 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         this.stages = mojo.stages;
         this.variables = mojo.variables;
         this.pipelineFileName = mojo.pipelineFileName;
-        this.appName = mojo.getAppDisplayName();
     }
 
     public void execute() {
 
+        appName = getAppDisplayName();
+
         injectTemplateStageServices();
-
-        File rootDir = getOrCreateWorkflowsDir();
-
-        cleanupWorkflows(rootDir);
 
         applyDefaultVariables();
 
@@ -48,10 +44,15 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         templateStageServices.add(ClassUtil.createInstance(UnitTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(IntegrationTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(BuildTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(ReadinessTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(SystemTestTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(DocumentationTemplateStageService.class));
+        /*
         templateStageServices.add(ClassUtil.createInstance(DownstreamTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(NotificationTemplateStageService.class));
+         */
     }
 
     void applyDefaultVariables() {
@@ -59,14 +60,21 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("APP_NAME", project.getArtifactId());
         defaultVariables.put("APP_DISPLAY_NAME", appName);
 
-        defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
+        defaultVariables.put("GIT_COMMIT", "$(Build.SourceVersion)");
+        defaultVariables.put("REPO_NAME", "$(Build.Repository.Name)");
+        defaultVariables.put("BRANCH_NAME", "$[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]");
 
-        if (PipelineGeneratorUtil.hasSonarProperties(project)) {
+        defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");
+        defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
+        defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
 
-            String sonarToken = PipelineGeneratorUtil.getProperty(project, "sonar.login", "${{ secrets.SONAR_TOKEN }}");
+        defaultVariables.put("REPO_ORGANISATION", variables.get("REPO_ORGANISATION"));
+        defaultVariables.put("REPO_PROJECT", variables.get("REPO_PROJECT"));
 
-            defaultVariables.put("SONAR_TOKEN", sonarToken);
-        }
+
+        // defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
+
+        /*
 
         defaultVariables.put("NODE_VERSION", PipelineGeneratorUtil.getProperty(project, "node.version", "16"));
 
@@ -78,6 +86,8 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
 
             variables.put("REPO_ACCESS_TOKEN", variableValue);
         }
+
+         */
     }
 
     void executeImpl(MetaData metaData, List<MetaData> workflows) {
@@ -110,33 +120,24 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         String pipeline = PipelineGeneratorUtil.getTemplate("pipeline");
 
         pipeline = pipeline
-                .replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName))
+                //.replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName));
+                .replace("%TRIGGERS%", String.join(", ", getBranches(this.stages)))
                 .replace("%VERSION%", version)
-                .replace("%BRANCH_NAME%", metaData.getBranchPattern())
-                .replace("  %ENV%", getVariablesTemplate(defaultVariables))
-                .replace("  %JOBS%", getStagesTemplate(metaData, templateStageServices));
+                .replace("%VARIABLES%", getVariablesTemplate(defaultVariables))
+                .replace("%STAGES%", getStagesTemplate(metaData, templateStageServices));
 
-        String workflowFileName = getWorkflowFileName(metaData, workflows);
+        // String workflowFileName = getWorkflowFileName(metaData, workflows);
 
-        File githubWorkflow = new File(dir, workflowFileName);
+        // File githubWorkflow = new File(dir, workflowFileName);
 
-        logMessage("Generate Github Workflows Pipeline for " + appName + " -> " + workflowFileName);
+        //  logMessage("Generate Github Workflows Pipeline for " + appName + " -> " + workflowFileName);
 
         pipeline = PipelineGeneratorUtil.removeEmptyLines(pipeline);
 
-        try (PrintWriter out = new PrintWriter(githubWorkflow)) {
+        try (PrintWriter out = new PrintWriter(dir)) {
             out.println(pipeline);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    String getStagesTemplate(MetaData metaData, List<TemplateStageService> templateStageServices) {
-
-        return templateStageServices.stream()
-                .map(it -> it.getTemplate(this, metaData))
-                .filter(Objects::nonNull)
-                .map(it -> PipelineGeneratorUtil.trimEmptyLines(it, 2))
-                .collect(Collectors.joining("\n\n"));
     }
 }

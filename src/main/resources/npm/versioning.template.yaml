@@ -1,14 +1,10 @@
-versioning:
-  name: Versioning
-  runs-on: [ %RUNS_ON% ]
-  needs: [ ]
-  steps:
-    - name: 'Checkout'
-      uses: actions/checkout@v3
-    - name: 'Node: Setup'
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    - name: 'NPM: versions'
-      run: echo TBD
-
+- stage: versioning
+  displayName: Versioning
+  dependsOn: []
+  condition: always()
+  variables:
+    - group: DEV
+  jobs:
+    - job: versioning
+      steps:
+        - script: echo npm run version -- $(VERSION)

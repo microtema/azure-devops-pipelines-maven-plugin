@@ -4,9 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.github.mustachejava.DefaultMustacheFactory;
-import com.github.mustachejava.Mustache;
-import com.github.mustachejava.MustacheFactory;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -24,26 +21,7 @@ import java.util.stream.Stream;
 
 public class PipelineGeneratorUtil {
 
-    private final static MustacheFactory MUSTACHE_FACTORY = new DefaultMustacheFactory();
-
     private final static ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory().disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER));
-
-    public static String compileTemplate(String templateName, Object context) {
-
-        Mustache mustache = MUSTACHE_FACTORY.compile(templateName + ".template.yaml");
-
-        StringWriter stringWriter = new StringWriter();
-
-        Writer execute = mustache.execute(stringWriter, context);
-
-        try {
-            execute.flush();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
-
-        return stringWriter.toString();
-    }
 
     public static String getTemplate(String templateName) {
 
@@ -577,6 +555,25 @@ public class PipelineGeneratorUtil {
         }
 
         return workflows;
+    }
+
+    public static List<String> getBranches(Map<String, String> stages) {
+
+        Set<String> workflows = new HashSet<>();
+
+        for (Map.Entry<String, String> stage : stages.entrySet()) {
+
+            String[] branches = StringUtils.split(stage.getValue(), ",");
+
+            for (String branchPattern : branches) {
+
+                List<String> branchNames = Stream.of(branchPattern.replaceAll("\\s","").split(",")).toList();
+
+                workflows.addAll(branchNames);
+            }
+        }
+
+        return workflows.stream().sorted().collect(Collectors.toList());
     }
 
     static public String getVariablesTemplate(Map<String, String> branchVariables) {

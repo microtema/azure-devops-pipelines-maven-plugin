@@ -1,0 +1,10 @@
+- stage: system_test
+  displayName: System Test
+  dependsOn: [ readiness ]
+  condition: and(succeeded('readiness'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: DEV
+  jobs:
+    - job: test
+      steps:
+        - script: echo npm system_test

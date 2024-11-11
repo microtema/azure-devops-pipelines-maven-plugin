@@ -85,10 +85,6 @@ public class PipelineGeneratorMojo extends AbstractMojo {
 
         injectTemplateStageServices();
 
-        File rootDir = getOrCreateWorkflowsDir();
-
-        cleanupWorkflows(rootDir);
-
         applyDefaultVariables();
 
         List<MetaData> workflows = getWorkflowFiles(project, stages, downStreams);
@@ -217,33 +213,6 @@ public class PipelineGeneratorMojo extends AbstractMojo {
         }
 
         return variableValue;
-    }
-
-    File getOrCreateWorkflowsDir() {
-
-        String rootPath = getRootPath(project);
-
-        File rootDir = new File(rootPath, pipelineFileName);
-        if (!rootDir.exists()) {
-
-            boolean mkdirs = rootDir.mkdirs();
-
-            if (mkdirs) {
-                logMessage("Create .github directories");
-            }
-        }
-        return rootDir;
-    }
-
-    void cleanupWorkflows(File rootDir) {
-
-        File[] files = rootDir.listFiles((dir, name) -> StringUtils.contains(name, pipelineFileName));
-
-        if (Objects.isNull(files) || files.length == 0) {
-            return;
-        }
-
-        Stream.of(files).forEach(it -> logMessage("Delete " + it.getName() + " workflow -> " + it.delete()));
     }
 
     String getWorkflowFileName(MetaData metaData, List<MetaData> workflows) {

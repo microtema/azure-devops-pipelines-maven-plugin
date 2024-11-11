@@ -1,16 +1,14 @@
-############## Created by de.microtema:github-workflow-maven-plugin ############
+############## Created by de.microtema:azure-devops-pipelines-maven-plugin ############
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
-# Files under .github/workflows folder are generated and should not be edited. #
+# File azure-pipelines.yaml is generated and should not be edited. #
 ################################################################################
 
-name: '%PIPELINE_NAME%'
+trigger: [%TRIGGERS%]
 
-on:
-  push:
-    branches:
-      - %BRANCH_NAME%
+pool:
+  vmImage: ubuntu-latest
 
-  %ENV%
-
-jobs:
-  %JOBS%
+%VARIABLES%
+  
+stages:
+%STAGES%
