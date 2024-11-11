@@ -49,6 +49,6 @@ public class BuildTemplateStageService implements TemplateStageService {
 
         return template
                 .replace("%DEPENDS_ON%", String.join(", ", jobIds))
-                .replace("%CONDITIONS%", jobIds.stream().map(it -> "succeeded('" + it + "')").collect(Collectors.joining(", ")));
+                .replace("%CONDITIONS%", jobIds.stream().map(it -> "not(failed('" + it + "'))").collect(Collectors.joining(", ")));
     }
 }

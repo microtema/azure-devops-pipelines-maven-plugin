@@ -1,10 +1,15 @@
 - stage: deploy
   displayName: Deploy
   dependsOn: [ tag ]
-  condition: and(succeeded('tag'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  condition: and( not(failed('tag')), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   variables:
     - group: DEV
   jobs:
     - job: deploy
       steps:
-        - script: echo npm run deploy
+        - task: UseNode@1
+          inputs:
+            version: '$(NODE_VERSION)'
+          displayName: 'Install Node.js'
+        - script: npm run deploy
+          displayName: 'npm run deploy'

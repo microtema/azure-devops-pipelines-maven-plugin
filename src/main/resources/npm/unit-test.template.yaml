@@ -7,4 +7,9 @@
   jobs:
     - job: test
       steps:
-        - script: echo npm test
+        - task: UseNode@1
+          inputs:
+            version: '$(NODE_VERSION)'
+          displayName: 'Install Node.js'
+        - script: npm test
+          displayName: 'npm test'

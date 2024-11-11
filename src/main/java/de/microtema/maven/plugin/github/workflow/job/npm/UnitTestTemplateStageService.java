@@ -15,7 +15,7 @@ public class UnitTestTemplateStageService implements TemplateStageService {
     @Override
     public String getJobId() {
 
-        return "unit-test";
+        return "unit_test";
     }
 
     @Override

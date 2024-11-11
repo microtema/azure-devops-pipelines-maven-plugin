@@ -68,8 +68,8 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
         defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
 
-        defaultVariables.put("REPO_ORGANISATION", variables.get("REPO_ORGANISATION"));
-        defaultVariables.put("REPO_PROJECT", variables.get("REPO_PROJECT"));
+        // apply all custom variables
+        defaultVariables.putAll(variables);
 
 
         // defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
