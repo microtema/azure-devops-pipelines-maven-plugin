@@ -1,0 +1,49 @@
+- stage: infra_deployment
+  displayName: Infra Deployment
+  dependsOn: [ promote ]
+  condition: and( succeeded('promote'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    SUBSCRIPTION_NAME: $(REPO_PROJECT)_SUBSCRIPTION_$(ENV_NAME)
+    RESOURCE_GROUP_NAME: ${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}
+    STORAGE_ACCOUNT_NAME: ${{ lower(variables['REPO_PROJECT']) }}${{ lower(variables['APP_NAME']) }}${{ lower(variables['ENV_NAME']) }}${{ lower(variables['LOCATION_SHORT']) }}${{ lower(variables['COUNTER']) }}
+  jobs:
+    - job: terraform
+      displayName: Terraform
+      steps:
+        - task: TerraformInstaller@1
+          displayName: Terraform Installer
+          inputs:
+            terraformVersion: 1.9.8
+        - task: AzureCLI@2
+          displayName: Set Terraform Credentials
+          inputs:
+            azureSubscription: $(REPO_PROJECT)_SUBSCRIPTION_$(ENV_NAME)
+            addSpnToEnvironment: true
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              echo "##vso[task.setvariable variable=ARM_USE_OIDC]true"
+              echo "##vso[task.setvariable variable=ARM_OIDC_TOKEN]$idToken"
+              echo "##vso[task.setvariable variable=ARM_CLIENT_ID]$servicePrincipalId"
+              echo "##vso[task.setvariable variable=ARM_SUBSCRIPTION_ID]$(az account show --query id -o tsv)"
+              echo "##vso[task.setvariable variable=ARM_TENANT_ID]$tenantId"
+        - script: |
+            terraform init \
+               -backend-config=resource_group_name=$RESOURCE_GROUP_NAME \
+               -backend-config=storage_account_name=$STORAGE_ACCOUNT_NAME
+          workingDirectory: terraform
+          displayName: Terraform Init
+        - script: |
+            terraform plan \
+              -input=false \
+              -out=tfplan \
+              -var=project=$REPO_PROJECT \
+              -var=app_name=$APP_NAME \
+              -var=commit_id=$GIT_COMMIT \
+              -var=branch_name=$BRANCH_NAME \
+              -var-file=env/${ENV_NAME,,}.tfvars
+          workingDirectory: terraform
+          displayName: Terraform Plan
+        - script: terraform apply tfplan
+          workingDirectory: terraform
+          displayName: Terraform Apply

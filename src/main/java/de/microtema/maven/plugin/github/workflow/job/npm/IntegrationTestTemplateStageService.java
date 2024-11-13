@@ -10,7 +10,7 @@ public class IntegrationTestTemplateStageService implements TemplateStageService
     @Override
     public String getTemplateName() {
 
-        return "npm/integration_test";
+        return "npm/integration-test";
     }
 
     @Override

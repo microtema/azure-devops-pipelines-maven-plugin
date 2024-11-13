@@ -1,11 +1,14 @@
 - stage: readiness
-  displayName: Readiness
-  dependsOn: [ deploy ]
-  condition: and(succeeded('deploy'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  displayName: Readiness Check
+  dependsOn: [ app_deployment ]
+  condition: and(succeeded('app_deployment'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   variables:
-    - group: DEV
+    SERVICE_URL: "https://${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}.azurewebsites.net/api/${{ lower(variables['APP_NAME']) }}/health"
   jobs:
-    - job: readiness
+    - job: http_request
+      displayName: Curl Request
       steps:
-        - script: echo npm run readiness
+        - bash: while [[ "$(curl -s $SERVICE_URL | jq -r '.commitId')" != "$GIT_COMMIT" ]]; do sleep 10; done
+          timeoutInMinutes: 5
+          displayName: Curl Request
 

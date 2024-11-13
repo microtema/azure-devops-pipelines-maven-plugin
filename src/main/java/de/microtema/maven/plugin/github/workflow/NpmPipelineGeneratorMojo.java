@@ -45,7 +45,9 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         templateStageServices.add(ClassUtil.createInstance(IntegrationTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(BuildTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(DeploymentTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(PromoteTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(InfraDeploymentTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(AppDeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(ReadinessTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(SystemTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DocumentationTemplateStageService.class));

@@ -1,4 +1,4 @@
-- stage: integration-test
+- stage: integration_test
   displayName: Integration Test
   dependsOn: [ security_check ]
   condition: succeeded('security_check')
