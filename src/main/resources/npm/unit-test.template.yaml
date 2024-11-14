@@ -3,7 +3,7 @@
   dependsOn: [ security_check ]
   condition: succeeded('security_check')
   variables:
-    - group: DEV
+    - group: ${{ variables.ENV_NAME }}
   jobs:
     - job: test
       steps:

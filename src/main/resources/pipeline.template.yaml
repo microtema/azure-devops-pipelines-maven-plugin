@@ -9,6 +9,14 @@ pool:
   vmImage: ubuntu-latest
 
 %VARIABLES%
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
+    ENV_NAME: "DEV"
+  ${{ elseif startsWith(variables['Build.SourceBranch'], 'refs/heads/release/') }}:
+    ENV_NAME: "INT"
+  ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    ENV_NAME: "PRD"
+  ${{ else }}:
+    ENV_NAME: "DEV"
   
 stages:
 %STAGES%

@@ -3,7 +3,7 @@
   dependsOn: [ tag ]
   condition: and( not(failed('tag')), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   variables:
-    - group: DEV
+    - group: ${{ variables.ENV_NAME }}
   jobs:
     - job: deploy
       steps:

@@ -3,7 +3,7 @@
   dependsOn: [ versioning ]
   condition: succeeded('versioning')
   variables:
-    - group: DEV
+    - group: ${{ variables.ENV_NAME }}
   jobs:
     - job: compile
       steps:

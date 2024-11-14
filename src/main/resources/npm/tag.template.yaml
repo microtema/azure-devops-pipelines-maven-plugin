@@ -3,7 +3,7 @@
   dependsOn: [ build ]
   condition: and(succeeded('build'), eq(variables.isMaster, true))
   variables:
-    - group: DEV
+    - group: ${{ variables.ENV_NAME }}
   jobs:
     - job: tag
       steps:

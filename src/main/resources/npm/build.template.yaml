@@ -3,7 +3,7 @@
   dependsOn: [ %DEPENDS_ON% ]
   condition: and( always(), %CONDITIONS% )
   variables:
-    - group: DEV
+    - group: ${{ variables.ENV_NAME }}
   jobs:
     - job: build
       steps:

@@ -3,7 +3,7 @@
   dependsOn: [ compile ]
   condition: succeeded('compile')
   variables:
-    - group: DEV
+    - group: ${{ variables.ENV_NAME }}
   jobs:
     - job: security
       steps:

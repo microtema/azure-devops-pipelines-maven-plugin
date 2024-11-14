@@ -3,7 +3,7 @@
   dependsOn: []
   condition: always()
   variables:
-    - group: DEV
+    - group: ${{ variables.ENV_NAME }}
   jobs:
     - job: versioning
       steps:
