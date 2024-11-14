@@ -16,7 +16,7 @@ public class IntegrationTestTemplateStageService implements TemplateStageService
     @Override
     public boolean access(PipelineGeneratorMojo mojo, MetaData metaData) {
 
-        return PipelineGeneratorUtil.hasE2ETests(mojo.getProject());
+        return true;
     }
 
     @Override
