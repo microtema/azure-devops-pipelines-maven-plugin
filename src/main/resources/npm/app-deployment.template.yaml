@@ -19,6 +19,8 @@
           displayName: 'Install Node.js'
         - script: npm install
           displayName: 'npm install'
+        - script: cp .${ENV_NAME,,}.env .env
+          displayName: 'Apply .env'
         - script: npm run build
           displayName: 'npm run build'
         - task: AzureCLI@2

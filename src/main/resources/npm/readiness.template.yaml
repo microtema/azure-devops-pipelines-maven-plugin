@@ -8,6 +8,7 @@
     - job: http_request
       displayName: Curl Request
       steps:
+        - checkout: none
         - bash: while [[ "$(curl -s $SERVICE_URL | jq -r '.commitId')" != "$GIT_COMMIT" ]]; do sleep 10; done
           timeoutInMinutes: 5
           displayName: Curl Request

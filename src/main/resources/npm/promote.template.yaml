@@ -8,6 +8,7 @@
     - job: check
       displayName: Check Resource Group
       steps:
+        - checkout: none
         - task: AzureCLI@2
           displayName: Check Resource Group
           name: step1
@@ -21,6 +22,7 @@
       dependsOn: [ check ]
       condition: eq(dependencies.check.outputs['step1.check'], 'false')
       steps:
+        - checkout: none
         - task: AzureCLI@2
           displayName: Create Resource Group
           inputs:
@@ -40,6 +42,7 @@
       dependsOn: [ check, resource_group ]
       condition: eq(dependencies.check.outputs['step1.check'], 'false')
       steps:
+        - checkout: none
         - task: AzureCLI@2
           displayName: Create Storage Account
           inputs:
@@ -58,6 +61,7 @@
       dependsOn: [ check, storage_account ]
       condition: eq(dependencies.check.outputs['step1.check'], 'false')
       steps:
+        - checkout: none
         - task: AzureCLI@2
           displayName: Create Storage Container
           inputs:
