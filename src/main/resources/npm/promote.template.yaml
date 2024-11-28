@@ -1,7 +1,7 @@
 - stage: promote
   displayName: Promote
   dependsOn: [ tag ]
-  condition: and( not(failed('tag')), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  condition: and( succeeded('build'), not(failed('tag')), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   variables:
     RESOURCE_GROUP_NAME: ${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}
   jobs:

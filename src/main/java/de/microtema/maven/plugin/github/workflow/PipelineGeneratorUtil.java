@@ -44,6 +44,11 @@ public class PipelineGeneratorUtil {
         return new File(getRootPath(project), ".mvn").exists();
     }
 
+    public static boolean isSPA(MavenProject project) {
+
+        return new File(getRootPath(project), "index.html").exists();
+    }
+
     public static boolean existsDockerfile(MavenProject project) {
 
         return new File(getRootPath(project), "Dockerfile").exists();

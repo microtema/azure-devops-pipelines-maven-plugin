@@ -1,7 +1,7 @@
 - stage: build
   displayName: Build
   dependsOn: [ %DEPENDS_ON% ]
-  condition: and( always(), %CONDITIONS% )
+  condition: and( succeeded('security_check'), %CONDITIONS% )
   variables:
     - group: ${{ variables.ENV_NAME }}
   jobs:

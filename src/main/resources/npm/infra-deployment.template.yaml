@@ -37,11 +37,11 @@
             terraform plan \
               -input=false \
               -out=tfplan \
+              -var-file=env/${ENV_NAME,,}.tfvars \
               -var=project=$REPO_PROJECT \
               -var=app_name=$APP_NAME \
               -var=commit_id=$GIT_COMMIT \
-              -var=branch_name=$BRANCH_NAME \
-              -var-file=env/${ENV_NAME,,}.tfvars
+              -var=branch_name=$BRANCH_NAME
           workingDirectory: terraform
           displayName: Terraform Plan
         - script: terraform apply tfplan

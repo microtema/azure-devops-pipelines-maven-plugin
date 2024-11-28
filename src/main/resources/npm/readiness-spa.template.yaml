@@ -1,0 +1,26 @@
+- stage: readiness
+  displayName: Readiness Check
+  dependsOn: [ app_deployment ]
+  condition: and(succeeded('app_deployment'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: http_request
+      displayName: Curl Request
+      steps:
+        - checkout: none
+          displayName: Curl Request
+        - task: AzureCLI@2
+          displayName: Run Azure Blob Storage Check
+          env:
+            AZURE_STORAGE_ACCOUNT: ${{ lower(variables['REPO_PROJECT']) }}${{ lower(variables['APP_NAME']) }}web${{ lower(variables['ENV_NAME']) }}${{ lower(variables['LOCATION_SHORT']) }}${{ lower(variables['COUNTER']) }}
+            RESOURCE_GROUP_NAME: ${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}
+          inputs:
+            azureSubscription: $(REPO_PROJECT)_SUBSCRIPTION_$(ENV_NAME)
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              az storage blob download -f git-info.json -c '$web' -n 'git-info.json'
+              
+              while [[ "$(jq -r '.commitId' git-info.json)" != "$GIT_COMMIT" ]]; do
+              az storage blob download -f git-info.json -c '$web' -n 'git-info.json'
+              sleep 10
+              done
