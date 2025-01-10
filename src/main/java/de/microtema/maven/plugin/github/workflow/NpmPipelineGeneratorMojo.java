@@ -1,6 +1,7 @@
 package de.microtema.maven.plugin.github.workflow;
 
 
+import de.microtema.maven.plugin.github.workflow.job.VersioningTemplateStageService;
 import de.microtema.maven.plugin.github.workflow.job.npm.*;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import de.microtema.model.converter.util.ClassUtil;
@@ -44,52 +45,14 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         templateStageServices.add(ClassUtil.createInstance(UnitTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(IntegrationTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(BuildTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(PromoteTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(InfraDeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(AppDeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(ReadinessTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(InfraPostDeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(SystemTestTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DocumentationTemplateStageService.class));
-        /*
-        templateStageServices.add(ClassUtil.createInstance(DownstreamTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(NotificationTemplateStageService.class));
-         */
-    }
-
-    void applyDefaultVariables() {
-
-        defaultVariables.put("APP_NAME", project.getArtifactId());
-        defaultVariables.put("APP_DISPLAY_NAME", appName);
-
-        defaultVariables.put("GIT_COMMIT", "$(Build.SourceVersion)");
-        defaultVariables.put("REPO_NAME", "$(Build.Repository.Name)");
-        defaultVariables.put("BRANCH_NAME", "$[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]");
-
-        defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");
-        defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
-        defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
-
-        // apply all custom variables
-        defaultVariables.putAll(variables);
-
-
-        // defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
-
-        /*
-
-        defaultVariables.put("NODE_VERSION", PipelineGeneratorUtil.getProperty(project, "node.version", "16"));
-
-        if (!downStreams.isEmpty()) {
-
-            String variableValue = variables.getOrDefault("REPO_ACCESS_TOKEN", "${{ secrets.REPO_ACCESS_TOKEN }}");
-
-            variableValue = PipelineGeneratorUtil.wrapSecretVariable(variableValue);
-
-            variables.put("REPO_ACCESS_TOKEN", variableValue);
-        }
-
-         */
     }
 
     void executeImpl(MetaData metaData, List<MetaData> workflows) {
@@ -122,17 +85,10 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         String pipeline = PipelineGeneratorUtil.getTemplate("pipeline");
 
         pipeline = pipeline
-                //.replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName));
                 .replace("%TRIGGERS%", String.join(", ", getBranches(this.stages)))
                 .replace("%VERSION%", version)
                 .replace("%VARIABLES%", getVariablesTemplate(defaultVariables))
                 .replace("%STAGES%", getStagesTemplate(metaData, templateStageServices));
-
-        // String workflowFileName = getWorkflowFileName(metaData, workflows);
-
-        // File githubWorkflow = new File(dir, workflowFileName);
-
-        //  logMessage("Generate Github Workflows Pipeline for " + appName + " -> " + workflowFileName);
 
         pipeline = PipelineGeneratorUtil.removeEmptyLines(pipeline);
 

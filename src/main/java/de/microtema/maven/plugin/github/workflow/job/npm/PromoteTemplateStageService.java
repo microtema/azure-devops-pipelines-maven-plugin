@@ -8,7 +8,7 @@ public class PromoteTemplateStageService implements TemplateStageService {
 
     @Override
     public String getTemplateName() {
-        return "npm/promote";
+        return "promote";
     }
 
     @Override

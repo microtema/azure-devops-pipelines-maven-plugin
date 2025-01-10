@@ -1,4 +1,4 @@
-package de.microtema.maven.plugin.github.workflow.job.npm;
+package de.microtema.maven.plugin.github.workflow.job.terraform;
 
 import de.microtema.maven.plugin.github.workflow.PipelineGeneratorMojo;
 import de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil;
@@ -26,13 +26,10 @@ public class InfraDeploymentTemplateStageService implements TemplateStageService
     @Override
     public String getTemplate(PipelineGeneratorMojo mojo, MetaData metaData) {
 
-        String template =   TemplateStageService.super.getTemplate(mojo, metaData);
-
-        if(!PipelineGeneratorUtil.hasTerraformModules(mojo.getProject())) {
-            return template;
-        }
+        String template = TemplateStageService.super.getTemplate(mojo, metaData);
 
         return template
-                .replace("terraform plan", "terraform plan -target module.pre");
+                .replace("-${{ lower(variables['APP_NAME']) }}", "")
+                .replace("${{ lower(variables['APP_NAME']) }}", "");
     }
 }

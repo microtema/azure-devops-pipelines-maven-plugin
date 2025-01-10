@@ -35,9 +35,6 @@ public class PipelineGeneratorMojo extends AbstractMojo {
     @Parameter(property = "down-streams")
     Map<String, String> downStreams = new LinkedHashMap<>();
 
-    @Parameter(property = "generate-rollback")
-    boolean generateRollback;
-
     @Parameter(property = "undeploy")
     boolean undeploy;
 
@@ -82,259 +79,26 @@ public class PipelineGeneratorMojo extends AbstractMojo {
 
             return;
         }
-
-        injectTemplateStageServices();
-
-        applyDefaultVariables();
-
-        List<MetaData> workflows = getWorkflowFiles(project, stages, downStreams);
-
-        for (MetaData metaData : workflows) {
-            executeImpl(metaData, workflows);
-        }
-
-        if (!generateRollback) {
-            return;
-        }
-
-        // Generate rollback workflows
-        workflows = getRollbackWorkflowFiles();
-
-        for (MetaData metaData : workflows) {
-            executeRollbackImpl(metaData);
-        }
     }
 
-    void injectTemplateStageServices() {
-        templateStageServices.add(ClassUtil.createInstance(InitializeTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(VersioningTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(CompileTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(SecurityTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(UnitTestTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(IntegrationTestTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(SonarTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(BuildTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(PackageTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(PublishTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(DbMigrationTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(PromoteTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(DeploymentTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(HelmTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(ReadinessTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(SystemTestTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(UnDeploymentTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(PerformanceTestTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(DownstreamTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(NotificationTemplateStageService.class));
-    }
-
-    void applyDefaultVariables() {
+    public void applyDefaultVariables() {
 
         defaultVariables.put("APP_NAME", project.getArtifactId());
         defaultVariables.put("APP_DISPLAY_NAME", appName);
 
-        if (PipelineGeneratorUtil.isDeploymentRepo(project)) {
-            return;
-        }
+        defaultVariables.put("GIT_COMMIT", "$(Build.SourceVersion)");
+        defaultVariables.put("REPO_NAME", "$(Build.Repository.Name)");
+        defaultVariables.put("BRANCH_NAME", "$[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]");
 
-        defaultVariables.put("GITHUB_TOKEN", "${{ secrets.GITHUB_TOKEN }}");
+        defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");
+        defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
+        defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
 
-        if (PipelineGeneratorUtil.hasSonarProperties(project)) {
-
-            String sonarToken = PipelineGeneratorUtil.getProperty(project, "sonar.login", "${{ secrets.SONAR_TOKEN }}");
-
-            sonarToken = variables.getOrDefault("SONAR_TOKEN", sonarToken);
-
-            defaultVariables.put("SONAR_TOKEN", sonarToken);
-        }
-
-        if (!defaultVariables.containsKey("JAVA_VERSION")) {
-
-            String javaVersion = PipelineGeneratorUtil.getProperty(project, "maven.compiler.target.version", PipelineGeneratorUtil.getProperty(project, "java.version", "17.x"));
-
-            defaultVariables.put("JAVA_VERSION", javaVersion);
-        }
-
-        if (PipelineGeneratorUtil.isMicroserviceRepo(project) || !downStreams.isEmpty()) {
-
-            String variableValue = variables.getOrDefault("REPO_ACCESS_TOKEN", "${{ secrets.REPO_ACCESS_TOKEN }}");
-
-            variableValue = wrapSecretVariable(variableValue);
-
-            variables.put("REPO_ACCESS_TOKEN", variableValue);
-
-            variableValue = variables.getOrDefault("DEPLOYMENT_REPOSITORY", "${{ github.repository }}-deployments");
-
-            variableValue = wrapSecretVariable(variableValue);
-
-            variables.put("DEPLOYMENT_REPOSITORY", variableValue);
-        }
-
-        String mavenCliOptions = "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true";
-
-        if (PipelineGeneratorUtil.existsMavenSettings(project)) {
-            mavenCliOptions = "-s settings.xml " + mavenCliOptions;
-            for (Map.Entry<String, String> entry : variables.entrySet()) {
-
-                String key = entry.getKey();
-
-                if (StringUtils.startsWith(key, "ARTIFACTORY")) {
-                    String orDefault = variables.getOrDefault(key, "${{ secrets." + key + " }}");
-                    defaultVariables.put(key, wrapSecretVariable(orDefault));
-                }
-            }
-        }
-
-        defaultVariables.put("MAVEN_CLI_OPTS", mavenCliOptions);
-
-        String codePaths = ".github/** src/** pom.xml";
-
-        if (PipelineGeneratorUtil.existsDockerfile(project)) {
-            codePaths += " Dockerfile";
-        }
-
-        if (PipelineGeneratorUtil.isMicroserviceRepo(project)) {
-
-            defaultVariables.putIfAbsent("CODE_PATHS", codePaths);
-        }
-
-        if (PipelineGeneratorUtil.isMavenArtifactRepo(project)) {
-
-            defaultVariables.putIfAbsent("CODE_PATHS", "*");
-        }
+        // apply all custom variables
+        defaultVariables.putAll(variables);
     }
 
-    private String wrapSecretVariable(String variableValue) {
-
-        if (variableValue.startsWith("secrets.")) {
-
-            return "${{ " + variableValue + " }}";
-        }
-
-        return variableValue;
-    }
-
-    String getWorkflowFileName(MetaData metaData, List<MetaData> workflows) {
-
-        String branchName = metaData.getBranchFullName();
-
-        boolean duplicate = workflows.stream().filter(it -> StringUtils.equalsIgnoreCase(it.getBranchFullName(), branchName)).count() > 1;
-
-        String workflowName = branchName + pipelineFileName;
-
-        if (duplicate) {
-            workflowName = branchName + "-" + metaData.getStageName() + pipelineFileName;
-        }
-
-        return workflowName;
-    }
-
-    List<MetaData> getRollbackWorkflowFiles() {
-
-        if (!PipelineGeneratorUtil.isMicroserviceRepo(project)) {
-
-            return Collections.emptyList();
-        }
-
-        List<MetaData> workflows = new ArrayList<>();
-
-        for (String stageName : stages.keySet()) {
-
-            if (StringUtils.equalsIgnoreCase(stageName, "none")) {
-                continue;
-            }
-
-            MetaData metaData = new MetaData();
-
-            metaData.setStageName(stageName);
-
-            workflows.add(metaData);
-        }
-
-        return workflows;
-    }
-
-    void executeImpl(MetaData metaData, List<MetaData> workflows) {
-
-        String rootPath = getRootPath(project);
-
-        File dir = new File(rootPath, pipelineFileName);
-
-        String version = getVersion(metaData.getBranchName(), project.getVersion());
-
-        defaultVariables.put("VERSION", version);
-
-        String pipeline = PipelineGeneratorUtil.getTemplate("pipeline");
-
-        pipeline = pipeline
-                .replace("%PIPELINE_NAME%", getPipelineName(project, metaData, appName))
-                .replace("%VERSION%", version)
-                .replace("%BRANCH_NAME%", metaData.getBranchPattern())
-                .replace("  %ENV%", getVariablesTemplate(defaultVariables))
-                .replace("  %JOBS%", getStagesTemplate(metaData, templateStageServices));
-
-        String workflowFileName = getWorkflowFileName(metaData, workflows);
-
-        File githubWorkflow = new File(dir, workflowFileName);
-
-        logMessage("Generate Github Workflows Pipeline for " + appName + " -> " + workflowFileName);
-
-        if (PipelineGeneratorUtil.hasMavenWrapper(project)) {
-            pipeline = pipeline.replaceAll("mvn ", "./mvnw ");
-        }
-
-        boolean supportVersionJob = Stream.of("develop", "feature").noneMatch(it -> StringUtils.equalsIgnoreCase(it, metaData.getBranchName()));
-
-        pipeline = pipeline
-                .replaceAll("%POM_ARTIFACT%", "'" + supportVersionJob + "'");
-
-        pipeline = PipelineGeneratorUtil.removeEmptyLines(pipeline);
-
-        try (PrintWriter out = new PrintWriter(githubWorkflow)) {
-            out.println(pipeline);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    void executeRollbackImpl(MetaData metaData) {
-
-        String rootPath = getRootPath(project);
-
-        File dir = new File(rootPath, pipelineFileName);
-
-        String pipeline = PipelineGeneratorUtil.getTemplate("pipeline-rollback");
-
-        RollbackTemplateStageService rollbackTemplateStageService = ClassUtil.createInstance(RollbackTemplateStageService.class);
-
-        Map<String, String> templateVariables = new HashMap<>(Collections.singletonMap("APP_NAME", project.getArtifactId()));
-
-        pipeline = pipeline
-                .replace("%PIPELINE_NAME%", getRollbackPipelineName(metaData.getStageName(), appName))
-                .replace("  %ENV%", getVariablesTemplate(templateVariables))
-                .replace("  %JOBS%", getStagesTemplate(metaData, Collections.singletonList(rollbackTemplateStageService)));
-
-        String workflowFileName = metaData.getStageName() + "-rollback" + pipelineFileName;
-
-        File githubWorkflow = new File(dir, workflowFileName);
-
-        logMessage("Generate Github Workflows Pipeline for (rollback) " + appName + " -> " + workflowFileName);
-
-        pipeline = PipelineGeneratorUtil.removeEmptyLines(pipeline);
-
-        try (PrintWriter out = new PrintWriter(githubWorkflow)) {
-            out.println(pipeline);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    void executeUndeployImpl(MetaData metaData) {
-
-    }
-
-    String getStagesTemplate(MetaData metaData, List<TemplateStageService> templateStageServices) {
+    public String getStagesTemplate(MetaData metaData, List<TemplateStageService> templateStageServices) {
 
         return templateStageServices.stream()
                 .map(it -> it.getTemplate(this, metaData))

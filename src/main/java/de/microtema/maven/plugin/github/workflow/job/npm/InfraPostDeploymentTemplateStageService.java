@@ -5,7 +5,7 @@ import de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil;
 import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
-public class InfraDeploymentTemplateStageService implements TemplateStageService {
+public class InfraPostDeploymentTemplateStageService implements TemplateStageService {
 
     @Override
     public String getTemplateName() {
@@ -14,25 +14,29 @@ public class InfraDeploymentTemplateStageService implements TemplateStageService
 
     @Override
     public String getJobId() {
-        return "infra-deployment";
+        return "infra-post-deployment";
     }
 
     @Override
     public boolean access(PipelineGeneratorMojo mojo, MetaData metaData) {
 
-        return true;
+        return PipelineGeneratorUtil.hasTerraformModules(mojo.getProject());
     }
 
     @Override
     public String getTemplate(PipelineGeneratorMojo mojo, MetaData metaData) {
 
-        String template =   TemplateStageService.super.getTemplate(mojo, metaData);
-
-        if(!PipelineGeneratorUtil.hasTerraformModules(mojo.getProject())) {
-            return template;
+        if(!access(mojo, metaData)) {
+            return null;
         }
 
+        String template =  TemplateStageService.super.getTemplate(mojo, metaData);
+
         return template
-                .replace("terraform plan", "terraform plan -target module.pre");
+                .replace("infra_deployment", "infra_post_deployment")
+                .replace("Infra Deployment", "Infra Post Deployment")
+                .replace("[ infra_precondition ]", "[ readiness ]")
+                .replace("succeeded('infra_precondition')", "succeeded('readiness')")
+                .replace("terraform plan", "terraform plan -target module.post");
     }
 }

@@ -56,21 +56,6 @@ public class DotnetPipelineGeneratorMojo extends PipelineGeneratorMojo {
         templateStageServices.add(ClassUtil.createInstance(NotificationTemplateStageService.class));
     }
 
-    void applyDefaultVariables() {
-
-        defaultVariables.put("APP_NAME", appName);
-
-        defaultVariables.put("VERSION", project.getVersion());
-        defaultVariables.put("GIT_COMMIT", "$(Build.SourceVersion)");
-        defaultVariables.put("GIT_BRANCH", "$(Build.SourceBranchName)");
-        defaultVariables.put("REPO_NAME", "$(Build.Repository.Name)");
-        defaultVariables.put("BRANCH_NAME", "$[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]");
-
-        defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");
-        defaultVariables.put("isRelease", "$[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]");
-        defaultVariables.put("isMaster", "$[eq(variables['Build.SourceBranch'], 'refs/heads/master')]");
-    }
-
     void executeImpl(MetaData metaData, List<MetaData> workflows) {
 
         defaultVariables.putAll(variables);

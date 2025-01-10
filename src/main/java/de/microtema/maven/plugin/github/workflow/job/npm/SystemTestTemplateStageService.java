@@ -6,6 +6,12 @@ import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
 public class SystemTestTemplateStageService implements TemplateStageService {
 
+    private final InfraPostDeploymentTemplateStageService infraPostDeploymentTemplateStageService;
+
+    public SystemTestTemplateStageService(InfraPostDeploymentTemplateStageService infraPostDeploymentTemplateStageService) {
+        this.infraPostDeploymentTemplateStageService = infraPostDeploymentTemplateStageService;
+    }
+
     @Override
     public String getTemplateName() {
         return "npm/system-test";
@@ -15,5 +21,19 @@ public class SystemTestTemplateStageService implements TemplateStageService {
     public boolean access(PipelineGeneratorMojo mojo, MetaData metaData) {
 
         return true;
+    }
+
+    @Override
+    public String getTemplate(PipelineGeneratorMojo mojo, MetaData metaData) {
+
+        String template =   TemplateStageService.super.getTemplate(mojo, metaData);
+
+        if(!infraPostDeploymentTemplateStageService.access(mojo, metaData)) {
+            return template;
+        }
+
+        return template
+                .replace("succeeded('readiness')", "succeeded('infra_post_deployment')")
+                .replace("[ readiness ]", "[ infra_post_deployment ]");
     }
 }

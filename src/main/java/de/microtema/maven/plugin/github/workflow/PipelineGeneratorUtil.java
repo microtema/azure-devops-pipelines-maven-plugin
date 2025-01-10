@@ -647,4 +647,9 @@ public class PipelineGeneratorUtil {
 
         return version;
     }
+
+    public static boolean hasTerraformModules(MavenProject project) {
+
+        return new File(getRootPath(project), "terraform/modules").exists();
+    }
 }
