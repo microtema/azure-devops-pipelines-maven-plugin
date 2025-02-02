@@ -7,7 +7,6 @@
   jobs:
     - job: check
       displayName: Check Resource Group
-      environment: $(ENV_NAME)
       steps:
         - checkout: none
         - task: AzureCLI@2
