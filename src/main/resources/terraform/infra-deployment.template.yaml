@@ -3,7 +3,7 @@
   dependsOn: [ infra_precondition ]
   condition: and( succeeded('infra_precondition'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   variables:
-    SUBSCRIPTION_NAME: $(REPO_PROJECT)_SUBSCRIPTION_$(ENV_NAME)
+    SUBSCRIPTION_NAME: $(SERVICE_CONNECTION)
     RESOURCE_GROUP_NAME: ${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}
     STORAGE_ACCOUNT_NAME: ${{ lower(variables['REPO_PROJECT']) }}${{ lower(variables['APP_NAME']) }}${{ lower(variables['ENV_NAME']) }}${{ lower(variables['LOCATION_SHORT']) }}${{ lower(variables['COUNTER']) }}
   jobs:
@@ -19,7 +19,7 @@
         - task: AzureCLI@2
           displayName: Set Terraform Credentials
           inputs:
-            azureSubscription: $(REPO_PROJECT)_SUBSCRIPTION_$(ENV_NAME)
+            azureSubscription: $(SERVICE_CONNECTION)
             addSpnToEnvironment: true
             scriptType: bash
             scriptLocation: inlineScript

@@ -8,24 +8,24 @@
     - job: documentation
       steps:
         - script: |
-            git clone https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(REPO_PROJECT)
-            cd $(REPO_PROJECT) 
+            git clone https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(DOC_REPO)
+            cd $(DOC_REPO) 
             git checkout $(BRANCH_NAME)
           displayName: 'Git: checkout'
         - script: |
             git branch
-            mkdir -p $(REPO_PROJECT)/.docs/$(APP_NAME)/deleteme
-            rm -r $(REPO_PROJECT)/.docs/$(APP_NAME)/*
-            cp -R .docs/. $(REPO_PROJECT)/.docs/$(APP_NAME)
+            mkdir -p $(DOC_REPO)/.docs/$(APP_NAME)/deleteme
+            rm -r $(DOC_REPO)/.docs/$(APP_NAME)/*
+            cp -R .docs/. $(DOC_REPO)/.docs/$(APP_NAME)
           displayName: 'Copy Documentation'
         - script: |
-            cd $(REPO_PROJECT)
+            cd $(DOC_REPO)
             git add --all
             git status
             if [[ `git status --porcelain` ]]; then
-               git config --global user.email mario.tema@adesso.de
-               git config --global user.name mario.tema
+               git config --global user.email $(CONTACT_EMAIL)
+               git config --global user.name $(CONTACT_NAME)
                git commit -am "Update DOC_AS_CODE repo within docs from $(REPO_NAME) commit $(GIT_COMMIT)"
-               git push https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(REPO_PROJECT)
+               git push https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(DOC_REPO)
             fi
           displayName: 'Git: Commit'

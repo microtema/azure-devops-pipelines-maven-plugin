@@ -1,0 +1,12 @@
+- stage: infra_security_check
+  displayName: Infra Security Check
+  dependsOn: [ build ]
+  condition: and( succeeded('build'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: security_check
+      displayName: Security Check
+      steps:
+        - script: pip3 install checkov
+          displayName: Install CLI Tool
+        - script: checkov -d terraform
+          displayName: Check Cloud Infrastructure

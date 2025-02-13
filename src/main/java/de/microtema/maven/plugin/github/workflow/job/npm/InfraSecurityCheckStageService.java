@@ -1,17 +1,19 @@
 package de.microtema.maven.plugin.github.workflow.job.npm;
 
 import de.microtema.maven.plugin.github.workflow.PipelineGeneratorMojo;
-import de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil;
 import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
-import java.util.Objects;
-
-public class DocumentationTemplateStageService implements TemplateStageService {
+public class InfraSecurityCheckStageService implements TemplateStageService {
 
     @Override
     public String getTemplateName() {
-        return "documentation";
+        return "infra-security-check";
+    }
+
+    @Override
+    public String getJobId() {
+        return "infra_security_check";
     }
 
     @Override

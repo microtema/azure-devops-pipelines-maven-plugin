@@ -76,8 +76,6 @@ public class PipelineGeneratorMojo extends AbstractMojo {
             TerraformPipelineGeneratorMojo terraformPipelineGeneratorMojo = new TerraformPipelineGeneratorMojo(this);
 
             terraformPipelineGeneratorMojo.execute();
-
-            return;
         }
     }
 
@@ -86,8 +84,12 @@ public class PipelineGeneratorMojo extends AbstractMojo {
         defaultVariables.put("APP_NAME", project.getArtifactId());
         defaultVariables.put("APP_DISPLAY_NAME", appName);
 
+        defaultVariables.put("CONTACT_EMAIL", "microtema@microtema.de");
+        defaultVariables.put("CONTACT_NAME", "mario.tema");
+
         defaultVariables.put("GIT_COMMIT", "$(Build.SourceVersion)");
         defaultVariables.put("REPO_NAME", "$(Build.Repository.Name)");
+        defaultVariables.put("DOC_REPO", "$(Build.Repository.Name)");
         defaultVariables.put("BRANCH_NAME", "$[replace(variables['Build.SourceBranch'], 'refs/heads/', '')]");
 
         defaultVariables.put("isDevelop", "$[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]");

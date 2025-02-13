@@ -5,10 +5,12 @@ import de.microtema.maven.plugin.github.workflow.job.VersioningTemplateStageServ
 import de.microtema.maven.plugin.github.workflow.job.npm.*;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import de.microtema.model.converter.util.ClassUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.Objects;
 
 
 import static de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil.*;
@@ -45,6 +47,7 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         templateStageServices.add(ClassUtil.createInstance(UnitTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(IntegrationTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(BuildTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(InfraSecurityCheckStageService.class));
         templateStageServices.add(ClassUtil.createInstance(PromoteTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(InfraDeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(AppDeploymentTemplateStageService.class));
@@ -84,10 +87,21 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
 
         String pipeline = PipelineGeneratorUtil.getTemplate("pipeline");
 
+        String serviceConnection = defaultVariables.get("SERVICE_CONNECTION");
+
+        if (Objects.nonNull(serviceConnection)) {
+
+            pipeline = pipeline.replaceAll("PROJECT_NAME_SUBSCRIPTION_DEV", serviceConnection);
+            pipeline = pipeline.replaceAll("PROJECT_NAME_SUBSCRIPTION_INT", serviceConnection);
+            pipeline = pipeline.replaceAll("PROJECT_NAME_SUBSCRIPTION_PRD", serviceConnection);
+        } else {
+            pipeline = pipeline.replaceAll("PROJECT_NAME", project.getParent().getArtifactId().toUpperCase());
+        }
+
         pipeline = pipeline
                 .replace("%TRIGGERS%", String.join(", ", getBranches(this.stages)))
                 .replace("%VERSION%", version)
-                .replace("%VARIABLES%", getVariablesTemplate(defaultVariables))
+                .replace("%VARIABLES%", getVariablesTemplate(defaultVariables).replace("SERVICE_CONNECTION", "SERVICE_CONNECTION_"))
                 .replace("%STAGES%", getStagesTemplate(metaData, templateStageServices));
 
         pipeline = PipelineGeneratorUtil.removeEmptyLines(pipeline);

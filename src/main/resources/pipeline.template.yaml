@@ -7,16 +7,20 @@ trigger: [%TRIGGERS%]
 
 pool:
   vmImage: ubuntu-latest
-
-%VARIABLES%
+variables:
   ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/develop') }}:
     ENV_NAME: "DEV"
+    SERVICE_CONNECTION: "PROJECT_NAME_SUBSCRIPTION_DEV"
   ${{ elseif startsWith(variables['Build.SourceBranch'], 'refs/heads/release/') }}:
     ENV_NAME: "INT"
+    SERVICE_CONNECTION: "PROJECT_NAME_SUBSCRIPTION_INT"
   ${{ elseif eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
     ENV_NAME: "PRD"
+    SERVICE_CONNECTION: "PROJECT_NAME_SUBSCRIPTION_PRD"
   ${{ else }}:
     ENV_NAME: "DEV"
-  
+    SERVICE_CONNECTION: "PROJECT_NAME_SUBSCRIPTION_DEV"
+%VARIABLES%
+
 stages:
 %STAGES%

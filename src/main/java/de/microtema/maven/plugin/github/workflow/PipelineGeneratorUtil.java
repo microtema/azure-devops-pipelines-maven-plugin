@@ -288,6 +288,11 @@ public class PipelineGeneratorUtil {
                 .findFirst().orElse(defaultValue);
     }
 
+    public static String getProperty(MavenProject project, String propertyName) {
+
+        return getProperty(project, propertyName, null);
+    }
+
     public static boolean isDeploymentRepo(MavenProject project) {
 
         if (hasSourceCode(project)) {
@@ -592,7 +597,7 @@ public class PipelineGeneratorUtil {
             e.printStackTrace();
         }
 
-        return PipelineGeneratorUtil.trimEmptyLines(template);
+        return PipelineGeneratorUtil.trimEmptyLines(template.replace("variables:", ""));
     }
 
     public static void logMessage(String message) {
