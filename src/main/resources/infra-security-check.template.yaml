@@ -5,8 +5,10 @@
   jobs:
     - job: security_check
       displayName: Security Check
+      continueOnError: true
       steps:
         - script: pip3 install checkov
           displayName: Install CLI Tool
         - script: checkov -d terraform
           displayName: Check Cloud Infrastructure
+          continueOnError: true

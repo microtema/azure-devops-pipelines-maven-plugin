@@ -1,6 +1,7 @@
 package de.microtema.maven.plugin.github.workflow;
 
 import de.microtema.maven.plugin.github.workflow.job.VersioningTemplateStageService;
+import de.microtema.maven.plugin.github.workflow.job.terraform.InfraSecurityCheckStageService;
 import de.microtema.maven.plugin.github.workflow.job.terraform.*;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import de.microtema.model.converter.util.ClassUtil;
@@ -39,6 +40,7 @@ public class TerraformPipelineGeneratorMojo extends PipelineGeneratorMojo {
     void injectTemplateStageServices() {
 
         templateStageServices.add(ClassUtil.createInstance(VersioningTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(InfraSecurityCheckStageService.class));
         templateStageServices.add(ClassUtil.createInstance(PromoteTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(InfraDeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
@@ -73,6 +75,17 @@ public class TerraformPipelineGeneratorMojo extends PipelineGeneratorMojo {
         defaultVariables.put("VERSION", version);
 
         String pipeline = PipelineGeneratorUtil.getTemplate("pipeline");
+
+        String serviceConnection = defaultVariables.get("SERVICE_CONNECTION");
+
+        if (Objects.nonNull(serviceConnection)) {
+
+            pipeline = pipeline.replaceAll("PROJECT_NAME_SUBSCRIPTION_DEV", serviceConnection);
+            pipeline = pipeline.replaceAll("PROJECT_NAME_SUBSCRIPTION_INT", serviceConnection);
+            pipeline = pipeline.replaceAll("PROJECT_NAME_SUBSCRIPTION_PRD", serviceConnection);
+        } else {
+            pipeline = pipeline.replaceAll("PROJECT_NAME", project.getParent().getArtifactId().toUpperCase());
+        }
 
         pipeline = pipeline
                 .replace("%TRIGGERS%", String.join(", ", getBranches(this.stages)))

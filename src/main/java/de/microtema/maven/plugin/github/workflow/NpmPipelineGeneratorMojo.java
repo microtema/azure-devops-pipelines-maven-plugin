@@ -3,9 +3,9 @@ package de.microtema.maven.plugin.github.workflow;
 
 import de.microtema.maven.plugin.github.workflow.job.VersioningTemplateStageService;
 import de.microtema.maven.plugin.github.workflow.job.npm.*;
+import de.microtema.maven.plugin.github.workflow.job.terraform.InfraSecurityCheckStageService;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 import de.microtema.model.converter.util.ClassUtil;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.PrintWriter;

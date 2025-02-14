@@ -1,6 +1,7 @@
-package de.microtema.maven.plugin.github.workflow.job.npm;
+package de.microtema.maven.plugin.github.workflow.job.terraform;
 
 import de.microtema.maven.plugin.github.workflow.PipelineGeneratorMojo;
+import de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil;
 import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
@@ -21,4 +22,19 @@ public class InfraSecurityCheckStageService implements TemplateStageService {
 
         return true;
     }
+
+    @Override
+    public String getTemplate(PipelineGeneratorMojo mojo, MetaData metaData) {
+
+        String template =   TemplateStageService.super.getTemplate(mojo, metaData);
+
+        if (PipelineGeneratorUtil.isTerraformRepo(mojo.getProject())) {
+            return template
+                    .replace("[ build ]", "[ versioning ]")
+                    .replace("succeeded('build')", "succeeded('versioning')");
+        }
+
+        return template;
+    }
+
 }
