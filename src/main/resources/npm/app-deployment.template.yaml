@@ -18,8 +18,10 @@
           displayName: 'Install Node.js'
         - script: npm install
           displayName: 'npm install'
-        - script: envsubst < .${ENV_NAME,,}.env > .env
-          displayName: 'Apply .env'
+        - download: current
+          artifact: shared-files
+        - script: mv shared-files/.env .
+          displayName: replace .env file
         - script: npm run build
           displayName: 'npm run build'
         - script: |

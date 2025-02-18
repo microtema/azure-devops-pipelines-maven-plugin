@@ -28,6 +28,10 @@ public class InfraSecurityCheckStageService implements TemplateStageService {
 
         String template =   TemplateStageService.super.getTemplate(mojo, metaData);
 
+        if(PipelineGeneratorUtil.isNodeJsRepo(mojo.getProject())) {
+            return template;
+        }
+
         if (PipelineGeneratorUtil.isTerraformRepo(mojo.getProject())) {
             return template
                     .replace("[ build ]", "[ versioning ]")

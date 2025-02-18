@@ -7,8 +7,9 @@
   jobs:
     - job: documentation
       steps:
+        - checkout: self
         - script: |
-            git clone https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(DOC_REPO)
+            git clone https://$(repoToken)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(DOC_REPO)
             cd $(DOC_REPO) 
             git checkout $(BRANCH_NAME)
           displayName: 'Git: checkout'
@@ -26,6 +27,6 @@
                git config --global user.email $(CONTACT_EMAIL)
                git config --global user.name $(CONTACT_NAME)
                git commit -am "Update DOC_AS_CODE repo within docs from $(REPO_NAME) commit $(GIT_COMMIT)"
-               git push https://$(REPO_TOKEN)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(DOC_REPO)
+               git push https://$(repoToken)@dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_git/$(DOC_REPO)
             fi
           displayName: 'Git: Commit'
