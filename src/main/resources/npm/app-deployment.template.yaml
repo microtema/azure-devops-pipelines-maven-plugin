@@ -20,7 +20,7 @@
           displayName: 'npm install'
         - download: current
           artifact: shared-files
-        - script: mv shared-files/.env .
+        - script: mv $(Pipeline.Workspace)/shared-files/.env .
           displayName: replace .env file
         - script: npm run build
           displayName: 'npm run build'
