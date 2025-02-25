@@ -34,7 +34,7 @@ public class ReadinessTemplateStageService implements TemplateStageService {
         }
 
         if (PipelineGeneratorUtil.isSPA(mojo.getProject())) {
-            return PipelineGeneratorUtil.getTemplate("npm/readiness-spa");
+            return PipelineGeneratorUtil.getTemplate("npm/spa-readiness");
         }
 
         return PipelineGeneratorUtil.getTemplate(getTemplateName());

@@ -28,12 +28,14 @@
             echo '{"branch": "'$BRANCH_NAME'", "commitId": "'$GIT_COMMIT'" }' > dist/git-info.json
           displayName: 'Create git-info'
         - task: AzureCLI@2
-          displayName: Run Azure Func Core Tools
+          displayName: Deploy Static Web App
           env:
-            AZURE_STORAGE_ACCOUNT: ${{ lower(variables['REPO_PROJECT']) }}${{ lower(variables['APP_NAME']) }}${{ lower(variables['ENV_NAME']) }}${{ lower(variables['LOCATION_SHORT']) }}${{ lower(variables['COUNTER']) }}
             RESOURCE_GROUP_NAME: ${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}
+            STORAGE_ACCOUNT_NAME: ${{ lower(variables['REPO_PROJECT']) }}${{ lower(variables['APP_NAME']) }}${{ lower(variables['ENV_NAME']) }}${{ lower(variables['LOCATION_SHORT']) }}${{ lower(variables['COUNTER']) }}
           inputs:
             azureSubscription: $(SERVICE_CONNECTION)
             scriptType: bash
             scriptLocation: inlineScript
-            inlineScript: func azure functionapp publish $RESOURCE_GROUP_NAME
+            inlineScript: |
+              az storage blob delete-batch --source '$web' --account-name $STORAGE_ACCOUNT_NAME
+              az storage blob upload-batch --destination '$web' --source dist --account-name $STORAGE_ACCOUNT_NAME

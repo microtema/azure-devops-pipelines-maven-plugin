@@ -17,7 +17,7 @@ public class AppDeploymentTemplateStageService implements TemplateStageService {
 
     @Override
     public String getJobId() {
-        return "app-deployment";
+        return "app_deployment";
     }
 
     @Override
@@ -33,22 +33,12 @@ public class AppDeploymentTemplateStageService implements TemplateStageService {
             return null;
         }
 
-        String inlineScript = "func azure functionapp publish $RESOURCE_GROUP_NAME";
-
-        String web = "";
 
         if (PipelineGeneratorUtil.isSPA(mojo.getProject())) {
-            inlineScript = "|\n" +
-                    "              az storage blob delete-batch --source '$web'\n" +
-                    "              az storage blob upload-batch --destination '$web' --source dist";
 
-            web = "web";
+            return PipelineGeneratorUtil.getTemplate("npm/spa-deployment");
         }
 
-        String template = PipelineGeneratorUtil.getTemplate(getTemplateName());
-
-        return template
-                .replace("%INLINE_SCRIPT%", inlineScript)
-                .replace("%WEB%", web);
+        return PipelineGeneratorUtil.getTemplate(getTemplateName());
     }
 }

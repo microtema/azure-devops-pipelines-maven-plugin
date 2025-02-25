@@ -11,16 +11,16 @@
         - task: AzureCLI@2
           displayName: Run Azure Blob Storage Check
           env:
-            AZURE_STORAGE_ACCOUNT: ${{ lower(variables['REPO_PROJECT']) }}${{ lower(variables['APP_NAME']) }}web${{ lower(variables['ENV_NAME']) }}${{ lower(variables['LOCATION_SHORT']) }}${{ lower(variables['COUNTER']) }}
             RESOURCE_GROUP_NAME: ${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}
+            STORAGE_ACCOUNT_NAME: ${{ lower(variables['REPO_PROJECT']) }}${{ lower(variables['APP_NAME']) }}${{ lower(variables['ENV_NAME']) }}${{ lower(variables['LOCATION_SHORT']) }}${{ lower(variables['COUNTER']) }}
           inputs:
             azureSubscription: $(SERVICE_CONNECTION)
             scriptType: bash
             scriptLocation: inlineScript
             inlineScript: |
-              az storage blob download -f git-info.json -c '$web' -n 'git-info.json'
+              az storage blob download -f git-info.json -c '$web' -n 'git-info.json' --account-name $STORAGE_ACCOUNT_NAME
               
               while [[ "$(jq -r '.commitId' git-info.json)" != "$GIT_COMMIT" ]]; do
-              az storage blob download -f git-info.json -c '$web' -n 'git-info.json'
+              az storage blob download -f git-info.json -c '$web' -n 'git-info.json' --account-name $STORAGE_ACCOUNT_NAME
               sleep 10
               done
