@@ -41,8 +41,8 @@ public class TerraformPipelineGeneratorMojo extends PipelineGeneratorMojo {
 
         templateStageServices.add(ClassUtil.createInstance(VersioningTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(InfraSecurityCheckStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(PromoteTemplateStageService.class));
-        templateStageServices.add(ClassUtil.createInstance(InfraDeploymentTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(PromoteRootTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(InfraRootDeploymentTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DocumentationTemplateStageService.class));
     }
