@@ -1,0 +1,22 @@
+- stage: readiness
+  displayName: Readiness Check
+  dependsOn: [ app_deployment ]
+  condition: and(succeeded('app_deployment'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  jobs:
+    - job: http_request
+      displayName: Azure CLI Request
+      steps:
+        - checkout: none
+          displayName: Curl Request
+        - task: AzureCLI@2
+          displayName: Check Artifact Digital Signature
+          env:
+            RESOURCE_GROUP_NAME: ${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}
+          inputs:
+            azureSubscription: $(SERVICE_CONNECTION)
+            scriptType: bash
+            scriptLocation: inlineScript
+            inlineScript: |
+              while [[ "$(az staticwebapp appsettings list --name $RESOURCE_GROUP_NAME | jq -r '.properties.GIT_COMMIT')" != "$GIT_COMMIT" ]]; do
+              sleep 10
+              done

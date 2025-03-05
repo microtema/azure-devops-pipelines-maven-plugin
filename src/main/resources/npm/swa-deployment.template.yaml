@@ -6,27 +6,24 @@
     - group: ${{ variables.ENV_NAME }}
   jobs:
     - job: app_deployment
-      displayName: Azure Func Core Tools
+      displayName: Azure Static Web App Tools
       steps:
-        - task: FuncToolsInstaller@0
-          inputs:
-            version: "4.0.5907"
-          displayName: Install Azure Func Core Tools
         - task: UseNode@1
           inputs:
             version: '$(NODE_VERSION)'
           displayName: 'Install Node.js'
         - script: npm install
           displayName: 'npm install'
+        - script: npm install -g @azure/static-web-apps-cli
+          displayName: 'npm install swa'
         - script: npm run build
           displayName: 'npm run build'
         - task: AzureCLI@2
-          displayName: Run Azure Func Core Tools
+          displayName: Deploy Static Web App
           env:
-            AZURE_STORAGE_ACCOUNT: ${{ lower(variables['REPO_PROJECT']) }}${{ lower(variables['APP_NAME']) }}${{ lower(variables['ENV_NAME']) }}${{ lower(variables['LOCATION_SHORT']) }}${{ lower(variables['COUNTER']) }}
             RESOURCE_GROUP_NAME: ${{ lower(variables['REPO_PROJECT']) }}-${{ lower(variables['APP_NAME']) }}-${{ lower(variables['ENV_NAME']) }}-${{ lower(variables['LOCATION_SHORT']) }}-${{ lower(variables['COUNTER']) }}
           inputs:
             azureSubscription: $(SERVICE_CONNECTION)
             scriptType: bash
             scriptLocation: inlineScript
-            inlineScript: func azure functionapp publish $RESOURCE_GROUP_NAME
+            inlineScript: swa deploy --env production --app-name $RESOURCE_GROUP_NAME --resource-group $RESOURCE_GROUP_NAME

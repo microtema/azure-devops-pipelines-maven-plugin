@@ -33,6 +33,10 @@ public class ReadinessTemplateStageService implements TemplateStageService {
             return null;
         }
 
+        if (PipelineGeneratorUtil.isSWA(mojo.getProject())) {
+            return PipelineGeneratorUtil.getTemplate("npm/swa-readiness");
+        }
+
         if (PipelineGeneratorUtil.isSPA(mojo.getProject())) {
             return PipelineGeneratorUtil.getTemplate("npm/spa-readiness");
         }

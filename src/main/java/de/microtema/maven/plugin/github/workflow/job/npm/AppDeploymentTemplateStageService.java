@@ -33,6 +33,10 @@ public class AppDeploymentTemplateStageService implements TemplateStageService {
             return null;
         }
 
+        if (PipelineGeneratorUtil.isSWA(mojo.getProject())) {
+
+            return PipelineGeneratorUtil.getTemplate("npm/swa-deployment");
+        }
 
         if (PipelineGeneratorUtil.isSPA(mojo.getProject())) {
 

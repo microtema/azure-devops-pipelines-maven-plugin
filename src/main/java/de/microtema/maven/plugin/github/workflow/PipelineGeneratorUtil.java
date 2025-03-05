@@ -48,6 +48,10 @@ public class PipelineGeneratorUtil {
 
         return new File(getRootPath(project), "index.html").exists();
     }
+    public static boolean isSWA(MavenProject project) {
+
+        return new File(getRootPath(project), "swa-cli.config.json").exists();
+    }
 
     public static boolean existsDockerfile(MavenProject project) {
 

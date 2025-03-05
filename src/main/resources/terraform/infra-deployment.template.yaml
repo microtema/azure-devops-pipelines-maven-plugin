@@ -49,5 +49,3 @@
         - script: terraform apply tfplan
           workingDirectory: terraform
           displayName: Terraform Apply
-        - publish: ./terraform/.env
-          artifact: shared-files
