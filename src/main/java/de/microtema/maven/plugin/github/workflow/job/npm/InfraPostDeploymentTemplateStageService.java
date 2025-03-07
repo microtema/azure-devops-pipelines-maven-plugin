@@ -38,7 +38,7 @@ public class InfraPostDeploymentTemplateStageService implements TemplateStageSer
                 .replace("[ infra_precondition ]", "[ readiness ]")
                 .replace("succeeded('infra_precondition')", "succeeded('readiness')")
                 .replace("terraform plan", "terraform plan -target module.post")
-                .replace("- publish: ./terraform/.env", "")
+                .replace("- publish: ./.env", "")
                 .replace("artifact: shared-files", "").trim();
     }
 }
