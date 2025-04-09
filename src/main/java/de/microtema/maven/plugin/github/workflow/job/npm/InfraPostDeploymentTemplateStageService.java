@@ -9,7 +9,7 @@ public class InfraPostDeploymentTemplateStageService implements TemplateStageSer
 
     @Override
     public String getTemplateName() {
-        return "terraform/infra-deployment";
+        return "terraform/infra-post-deployment";
     }
 
     @Override
@@ -21,24 +21,5 @@ public class InfraPostDeploymentTemplateStageService implements TemplateStageSer
     public boolean access(PipelineGeneratorMojo mojo, MetaData metaData) {
 
         return PipelineGeneratorUtil.hasTerraformModules(mojo.getProject());
-    }
-
-    @Override
-    public String getTemplate(PipelineGeneratorMojo mojo, MetaData metaData) {
-
-        if(!access(mojo, metaData)) {
-            return null;
-        }
-
-        String template =  TemplateStageService.super.getTemplate(mojo, metaData);
-
-        return template
-                .replace("infra_deployment", "infra_post_deployment")
-                .replace("Infra Deployment", "Infra Post Deployment")
-                .replace("[ infra_precondition ]", "[ readiness ]")
-                .replace("succeeded('infra_precondition')", "succeeded('readiness')")
-                .replace("terraform plan", "terraform plan -target module.post")
-                .replace("- publish: ./.env", "")
-                .replace("artifact: shared-files", "").trim();
     }
 }

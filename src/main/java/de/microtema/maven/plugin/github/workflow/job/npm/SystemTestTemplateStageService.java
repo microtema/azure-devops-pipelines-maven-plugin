@@ -34,6 +34,8 @@ public class SystemTestTemplateStageService implements TemplateStageService {
 
         return template
                 .replace("succeeded('readiness')", "succeeded('infra_post_deployment')")
-                .replace("[ readiness ]", "[ infra_post_deployment ]");
+                .replace("[ readiness ]", "[ infra_post_deployment ]")
+                .replace("artifact: shared-files", "artifact: post-shared-files")
+                .replace("script: mv $(Pipeline.Workspace)/shared-files/.env .", "script: mv $(Pipeline.Workspace)/post-shared-files/.env .");
     }
 }

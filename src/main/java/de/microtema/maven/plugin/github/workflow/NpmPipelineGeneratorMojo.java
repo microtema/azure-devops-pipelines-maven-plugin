@@ -2,6 +2,7 @@ package de.microtema.maven.plugin.github.workflow;
 
 
 import de.microtema.maven.plugin.github.workflow.job.VersioningTemplateStageService;
+import de.microtema.maven.plugin.github.workflow.job.DownstreamTemplateStageService;
 import de.microtema.maven.plugin.github.workflow.job.npm.*;
 import de.microtema.maven.plugin.github.workflow.job.terraform.InfraSecurityCheckStageService;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
@@ -56,6 +57,7 @@ public class NpmPipelineGeneratorMojo extends PipelineGeneratorMojo {
         templateStageServices.add(ClassUtil.createInstance(SystemTestTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(TagTemplateStageService.class));
         templateStageServices.add(ClassUtil.createInstance(DocumentationTemplateStageService.class));
+        templateStageServices.add(ClassUtil.createInstance(DownstreamTemplateStageService.class));
     }
 
     void executeImpl(MetaData metaData, List<MetaData> workflows) {

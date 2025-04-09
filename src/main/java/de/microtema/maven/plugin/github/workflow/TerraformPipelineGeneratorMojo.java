@@ -1,5 +1,7 @@
 package de.microtema.maven.plugin.github.workflow;
 
+import de.microtema.maven.plugin.github.workflow.job.DocumentationTemplateStageService;
+import de.microtema.maven.plugin.github.workflow.job.TagTemplateStageService;
 import de.microtema.maven.plugin.github.workflow.job.VersioningTemplateStageService;
 import de.microtema.maven.plugin.github.workflow.job.terraform.InfraSecurityCheckStageService;
 import de.microtema.maven.plugin.github.workflow.job.terraform.*;

@@ -12,6 +12,8 @@
           inputs:
             version: '$(NODE_VERSION)'
           displayName: 'Install Node.js'
+        - script: rm .env
+          displayName: Remove .env file
         - script: npm install
           displayName: 'npm install'
         - script: npm install -g @azure/static-web-apps-cli

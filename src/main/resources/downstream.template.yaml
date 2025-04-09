@@ -1,0 +1,16 @@
+- stage: downstream
+  displayName: Downstream
+  dependsOn: [ documentation ]
+  condition: and(succeeded('documentation'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  variables:
+    - group: ${{ variables.ENV_NAME }}
+  jobs:
+    - job: downstream
+      steps:
+        - script: |
+            curl -X POST \
+              -u ":$(repoToken)" \
+              -H "Content-Type: application/json" \
+              https://dev.azure.com/$(REPO_ORGANISATION)/$(REPO_PROJECT)/_apis/pipelines/%DOWNSTREAM_PIPELINE_ID%/runs?api-version=7.1-preview.1 \
+              -d '{ "resources": { "repositories": { "self": { "refName": "refs/heads/'$(BRANCH_NAME)'" } } } }'
+          displayName: 'Downstream Pipeline'

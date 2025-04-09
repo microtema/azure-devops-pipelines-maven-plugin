@@ -1,14 +1,13 @@
-package de.microtema.maven.plugin.github.workflow.job.terraform;
+package de.microtema.maven.plugin.github.workflow.job;
 
 import de.microtema.maven.plugin.github.workflow.PipelineGeneratorMojo;
-import de.microtema.maven.plugin.github.workflow.job.TemplateStageService;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
-public class DocumentationTemplateStageService implements TemplateStageService {
+public class TagTemplateStageService implements TemplateStageService {
 
     @Override
     public String getTemplateName() {
-        return "documentation";
+        return "tag";
     }
 
     @Override
@@ -23,7 +22,7 @@ public class DocumentationTemplateStageService implements TemplateStageService {
         String template = TemplateStageService.super.getTemplate(mojo, metaData);
 
         return template
-                .replace("[ system_test ]", "[ tag ]")
-                .replace("succeeded('system_test'), not(failed('tag')),", "succeeded('infra_deployment'), not(failed('tag')),");
+                .replace("[ system_test ]", "[ infra_deployment ]")
+                .replace("succeeded('system_test'),", "succeeded('infra_deployment'),");
     }
 }
