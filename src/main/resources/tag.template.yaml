@@ -1,7 +1,7 @@
 - stage: tag
   displayName: Tag
-  dependsOn: [ system_test ]
-  condition: and(succeeded('system_test'), eq(variables.isMaster, true))
+  dependsOn: [ smoke_test ]
+  condition: and(succeeded('readiness'), not(failed('smoke_test')), eq(variables.isMaster, true))
   variables:
     - group: ${{ variables.ENV_NAME }}
   jobs:

@@ -1,7 +1,7 @@
-- stage: system_test
-  displayName: System Test
-  dependsOn: [ readiness ]
-  condition: and(succeeded('readiness'), or(eq(variables.isDevelop, true), eq(variables.isRelease, true)))
+- stage: smoke_test
+  displayName: Smoke Test
+  dependsOn: [ system_test ]
+  condition: and(succeeded('readiness'), not(failed('system_test')), eq(variables.isMaster, true))
   variables:
     - group: ${{ variables.ENV_NAME }}
   jobs:
@@ -17,5 +17,5 @@
           artifact: shared-files
         - script: mv $(Pipeline.Workspace)/post-shared-files/.env .
           displayName: replace .env file
-        - script: npm run system:test
-          displayName: 'npm run system:test'
+        - script: npm run smoke:test
+          displayName: 'npm run smoke:test'

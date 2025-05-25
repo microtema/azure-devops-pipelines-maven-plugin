@@ -1,7 +1,7 @@
 - stage: documentation
   displayName: Documentation
   dependsOn: [ tag ]
-  condition: and(succeeded('system_test'), not(failed('tag')), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+  condition: and(succeeded('readiness'), not(failed('tag')), or(eq(variables.isDevelop, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
   variables:
     - group: ${{ variables.ENV_NAME }}
   jobs:
