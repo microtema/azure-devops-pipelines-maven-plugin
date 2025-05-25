@@ -15,7 +15,7 @@
           displayName: 'npm install'
         - download: current
           artifact: shared-files
-        - script: mv $(Pipeline.Workspace)/post-shared-files/.env .
+        - script: mv $(Pipeline.Workspace)/shared-files/.env .
           displayName: replace .env file
         - script: npm run system:test
           displayName: 'npm run system:test'

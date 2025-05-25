@@ -1,6 +1,7 @@
 package de.microtema.maven.plugin.github.workflow.job;
 
 import de.microtema.maven.plugin.github.workflow.PipelineGeneratorMojo;
+import de.microtema.maven.plugin.github.workflow.PipelineGeneratorUtil;
 import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
 public class TagTemplateStageService implements TemplateStageService {
@@ -21,8 +22,13 @@ public class TagTemplateStageService implements TemplateStageService {
 
         String template = TemplateStageService.super.getTemplate(mojo, metaData);
 
-        return template
-                .replace("[ system_test ]", "[ infra_deployment ]")
-                .replace("succeeded('system_test'),", "succeeded('infra_deployment'),");
+        if (PipelineGeneratorUtil.isTerraformRepo(mojo.getProject())) {
+
+            return template
+                    .replace("[ smoke_test ]", "[ infra_deployment ]")
+                    .replace("and(succeeded('readiness'), not(failed('smoke_test')), eq(variables.isMaster, true))", "and(succeeded('infra_deployment'), eq(variables.isMaster, true))");
+        }
+
+        return template;
     }
 }

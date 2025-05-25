@@ -6,6 +6,12 @@ import de.microtema.maven.plugin.github.workflow.model.MetaData;
 
 public class SmokeTestTemplateStageService implements TemplateStageService {
 
+    private final InfraPostDeploymentTemplateStageService infraPostDeploymentTemplateStageService;
+
+    public SmokeTestTemplateStageService(InfraPostDeploymentTemplateStageService infraPostDeploymentTemplateStageService) {
+        this.infraPostDeploymentTemplateStageService = infraPostDeploymentTemplateStageService;
+    }
+
     @Override
     public String getTemplateName() {
         return "npm/smoke-test";
@@ -15,5 +21,21 @@ public class SmokeTestTemplateStageService implements TemplateStageService {
     public boolean access(PipelineGeneratorMojo mojo, MetaData metaData) {
 
         return true;
+    }
+
+    @Override
+    public String getTemplate(PipelineGeneratorMojo mojo, MetaData metaData) {
+
+        String template = TemplateStageService.super.getTemplate(mojo, metaData);
+
+        if (infraPostDeploymentTemplateStageService.access(mojo, metaData)) {
+
+            template = template
+                    .replace("succeeded('readiness')", "succeeded('infra_post_deployment')")
+                    .replace("artifact: shared-files", "artifact: post-shared-files")
+                    .replace("script: mv $(Pipeline.Workspace)/shared-files/.env .", "script: mv $(Pipeline.Workspace)/post-shared-files/.env .");
+        }
+
+        return template;
     }
 }
